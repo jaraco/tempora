@@ -525,3 +525,11 @@ hours_per_day = 24
 seconds_per_hour = seconds_per_minute * minutes_per_hour
 seconds_per_day = seconds_per_hour * hours_per_day
 days_per_year = float( seconds_per_year ) / seconds_per_day
+
+def randbytes( n ):
+	"Returns n random bytes"
+	for i in xrange( n / 4 ):
+		for byte in struct.pack( 'f', random.random() ):
+			yield byte
+	for byte in struct.pack( 'f', random.random() )[: n % 4 ]:
+		yield byte
