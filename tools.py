@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 30 $'[11:-2]
+__version__ = '$Revision: 31 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-06-09 16:22 $'[10:-2]
+__date__ = '$Modtime: 04-06-11 10:28 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -732,7 +732,10 @@ def ordinalth(n):
 def strftime( fmt, t ):
 	"""A class to replace the strftime in datetime package or time module.
 	Identical to strftime behavior in those modules except supports any
-	year."""
+	year.
+	Also supports datetime.datetime times.
+	Also supports milliseconds using %s
+	Also supports microseconds using %u"""
 	if isinstance( t, ( time.struct_time, tuple ) ):
 		t = datetime.datetime( *t[:6] )
 	assert isinstance( t, ( datetime.datetime, datetime.time, datetime.date ) )
@@ -741,10 +744,15 @@ def strftime( fmt, t ):
 		if year < 1900: t = t.replace( year = 1900 )
 	except AttributeError:
 		year = 1900
-	doBigSub = lambda s: s.replace( '%Y', '%04d' % year )
-	doSmallSub = lambda s: s.replace( '%y', '%02d' % ( year % 100 ) )
-	doYearSub = lambda s: doSmallSub( doBigSub( s ) )
-	fmt = '%%'.join( map( doYearSub, fmt.split( '%%' ) ) )
+	subs = (
+		( '%Y', '%04d' % year ),
+		( '%y', '%02d' % ( year % 100 ) ),
+		( '%s', '%03d' % ( t.microsecond / 1000 ) ),
+		( '%u', '%03d' % ( t.microsecond % 1000 ) )
+		)
+	doSub = lambda s, sub: s.replace( *sub )
+	doSubs = lambda s: reduce( doSub, subs, s )
+	fmt = '%%'.join( map( doSubs, fmt.split( '%%' ) ) )
 	return t.strftime( fmt )
 
 def strptime( s, fmt, tzinfo = None ):
