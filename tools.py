@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 23 $'[11:-2]
+__version__ = '$Revision: 24 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-05-06 17:37 $'[10:-2]
+__date__ = '$Modtime: 04-05-14 10:24 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -605,3 +605,18 @@ def hashSplit( seq, func ):
 	"""Split a sequence into n sequences where n is determined by the number
 	of distinct values returned by func( element ) for each element in the sequence."""
 	pass #stubbed
+
+def ordinalth(n):
+	"""Return the ordinal with 'st', 'th', or 'nd' appended as appropriate.
+	>>> map( ordinalth, xrange( -5, 22 ) )
+	['-5th', '-4th', '-3rd', '-2nd', '-1st', '0th', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th', '13th', '14th', '15th', '16th', '17th', '18th', '19th', '20th', '21st']
+	"""
+	# zero through three map to 'th', 'st', 'nd', 'rd'
+	t = ( 'th', 'st', 'nd', 'rd' )
+	# special case: ones digit is > 3
+	ones = abs( n ) % 10
+	forceth = ones > 3
+	# special case: n ends in 11, 12, 13
+	forceth |= abs( n ) % 100 in (11, 12, 13)
+	index = [ ones, 0 ][forceth]
+	return '%d%s' % ( n, t[index] )
