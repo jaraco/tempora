@@ -208,7 +208,7 @@ class Win32TimeZone( datetime.tzinfo ):
 			key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
 										 tzRegKeyPath,
 										 0,
-										 win32con.KEY_ALL_ACCESS )
+										 win32con.KEY_READ )
 		except:
 			raise ValueError, 'Timezone Name %s not found.' % timeZoneName
 		self.LoadInfoFromKey( key )
@@ -294,10 +294,20 @@ class Win32TimeZone( datetime.tzinfo ):
 		key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
 									 tzRegKey,
 									 0,
-									 win32con.KEY_ALL_ACCESS )
+									 win32con.KEY_READ )
 		return RegKeyEnumerator( key )
 		
 	GetTimeZones = staticmethod( _GetTimeZones )
+
+	def _GetLocalTimeZone( ):
+		tzRegKey = r'SYSTEM\CurrentControlSet\Control\TimeZoneInformation'
+		key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
+									 tzRegKey,
+									 0,
+									 win32con.KEY_READ )
+		tzName, type = win32api.RegQueryValueEx( key, 'StandardName' )
+		return Win32TimeZone( tzName )
+	GetLocalTimeZone = staticmethod( _GetLocalTimeZone )
 
 def GregorianDate( year, julianDay ):
 	result = datetime.date( year, 1, 1 )
@@ -380,16 +390,15 @@ class TimestampFileHandler( logging.StreamHandler ):
 	appending a number, uses a timestamp to periodically select
 	new file names to log to.
 	"""
-	def __init__( self, baseFilename, mode='a', period='day', timeConverter=time.localtime ):
+	def __init__( self, baseFilename, mode='a', period='day' ):
 		self.baseFilename = baseFilename
 		self.mode = mode
 		self._setPeriod( period )
-		self.timeConverter = timeConverter
 		logging.StreamHandler.__init__( self, None )
 
 	def _setPeriod( self, period ):
 		"""
-		Set the period for the timestamp.  If period is 0 or None, no period will be used
+		Set the period for the timestamp.  If period is 0 or None, no period will be used.
 		"""
 		self._period = period
 		if period:
@@ -421,11 +430,14 @@ class TimestampFileHandler( logging.StreamHandler ):
 		# remove seconds not significant to the period
 		if self._periodSeconds:
 			t -= t % self._periodSeconds
-		# convert it to a time tuple for formatting using
-		#  the supplied converter
-		timeTuple = self.timeConverter( t )
+		# convert it to a datetime object for formatting
+		dt = datetime.datetime.utcfromtimestamp( t )
 		# append the datestring to the filename
-		appendedDate = time.strftime( self._dateFormat, timeTuple )
+		# workaround for datetime.strftime not handling '' properly
+		if not self._dateFormat == '':
+			appendedDate = dt.strftime( self._dateFormat )
+		else:
+			appendedDate = ''
 		if appendedDate:
 			# in the future, it would be nice for this format
 			#  to be supplied as a parameter.
