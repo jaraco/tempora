@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 29 $'[11:-2]
+__version__ = '$Revision: 30 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-05-24 16:58 $'[10:-2]
+__date__ = '$Modtime: 04-06-09 16:22 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -746,3 +746,11 @@ def strftime( fmt, t ):
 	doYearSub = lambda s: doSmallSub( doBigSub( s ) )
 	fmt = '%%'.join( map( doYearSub, fmt.split( '%%' ) ) )
 	return t.strftime( fmt )
+
+def strptime( s, fmt, tzinfo = None ):
+	"""A function to replace strptime in the time module.  Should behave identically
+	to the strptime function except it returns a datetime.datetime object instead of
+	a time.struct_time object.
+	Also takes an optional tzinfo parameter which is a time zone info object."""
+	res = time.strptime( s, fmt )
+	return datetime.datetime( tzinfo = tzinfo, *res[:6] )
