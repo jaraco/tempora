@@ -360,3 +360,80 @@ class LogFileWrapper( object ):
 		for line in data[:-1]:
 			self.logger.log( self.lvl, line )
 		self.queued = data[-1]
+
+class splitter( object ):
+	"""object that will split a string with the given arguments for each call
+	>>> s = splitter( ',' )
+	>>> s( 'hello, world, this is your, master calling' )
+	['hello', ' world', ' this is your', ' master calling']
+"""
+	def __init__( self, *args ):
+		self.args = args
+
+	def __call__( self, s ):
+		return string.split( s, *self.args )
+
+class odict( dict ):
+	"""ordered dictionary: behaves like a dictionary except calls to keys(), values(), items(), etc
+	returns results in the order they were added"""
+
+	def __init__( self, *args ):
+		dict.__init__( self, *args )
+		try:
+			if isinstance( args[0], odict ):
+				self._keys = args[0]._keys[:]
+			else:
+				self._keys = dict.keys( self )
+		except IndexError:
+			self._keys = []
+		
+	def __delitem__( self, key ):
+		dict.__delitem__( self, key )
+		self._keys.remove( key )
+
+	def __setitem__( self, key, item ):
+		dict.__setitem__( self, key, item )
+		self._addkey( key )
+
+	def _addkey( self, key ):
+		try:
+			self._keys.remove( key )
+		except: pass
+		self._keys.append( key )
+
+	def clear( self ):
+		dict.clear( self )
+		self._keys = []
+
+	def copy( self ):
+		result = odict( self )
+		result._keys = self._keys[:]
+		return result
+
+	def items( self ):
+		return zip( self._keys, self.values() )
+
+	def keys( self ):
+		return self._keys[:]
+
+	def popitem( self ):
+		try:
+			key = self._keys[-1]
+		except IndexError:
+			raise KeyError( 'dictionary is empty' )
+		val = self[key]
+		del self[key]
+
+		return ( key, val )
+
+	def setdefault( self, key, failobj = None ):
+		dict.setdefault( self, key, failobj )
+		self._addkey( key )
+
+	def update( self, new ):
+		dict.update( self, new )
+		for newkey in new.keys():
+			self._addkey( newkey )
+
+	def values( self ):
+		return map( self.get, self._keys )
