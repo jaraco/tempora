@@ -557,3 +557,19 @@ def randbytes( n ):
 			yield byte
 	for byte in struct.pack( 'f', random.random() )[: n % 4 ]:
 		yield byte
+
+def flatten( l ):
+	"""flatten takes a list of lists and returns a single list with each element from the
+	sublists.  For example,
+	>>> flatten( ['a','b',['c','d',['e','f'],'g'],'h'] ) == ['a','b','c','d','e','f','g','h']
+	True
+	"""
+	if not isinstance( l, ( list, tuple ) ):
+		result = [ l ]
+	elif filter( lambda x: isinstance( x, (list, tuple) ), l ):
+		result = []
+		map( result.extend, map( flatten, l ) )
+	else:
+		result = l
+	return result
+
