@@ -1,8 +1,10 @@
 # -*- coding: UTF-8 -*-
 
-# tools.py:
-#  small functions or classes that don't have a home elsewhere
-# from __future__ import generators
+"""
+tools.py:
+  small functions or classes that don't have a home elsewhere
+"""
+#from __future__ import generators
 
 import string, urllib
 
@@ -34,7 +36,7 @@ def makeRows( list, nColumns ):
 	# chunk the list into n Columns of length nRows
 	result = chunkGenerator( list, nRows )
 	# result is now a list of columns... transpose it to return a list of rows
-	return apply( map, (None,)+tuple(result))
+	return map( None, *result )
 
 # HTTP Query takes as an argument an HTTP query request (from the url after ?)
 #  and maps all of the pairs in itself as a dictionary.
@@ -65,17 +67,17 @@ def chunkGenerator( seq, size ):
 	for i in range( 0, len(seq), size ):
 		yield seq[i:i+size]
 
-import time
+import datetime
 
 class QuickTimer( object ):
 	def __init__( self ):
 		self.Start()
 
 	def Start( self ):
-		self.startTime = time.time()
+		self.startTime = datetime.datetime.now()
 
 	def Stop( self ):
-		return time.time() - self.startTime
+		return datetime.datetime.now() - self.startTime
 
 import re, operator
 # some code to do conversions from DMS to DD
@@ -282,6 +284,16 @@ class Win32TimeZone( datetime.tzinfo ):
 			result -= datetime.timedelta( weeks = 1 )
 		return result
 
+	def _GetTimeZones( ):
+		tzRegKey = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones'
+		key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
+									 tzRegKey,
+									 0,
+									 win32con.KEY_ALL_ACCESS )
+		return RegKeyEnumerator( key )
+		
+	GetTimeZones = staticmethod( _GetTimeZones )
+
 def GregorianDate( year, julianDay ):
 	result = datetime.date( year, 1, 1 )
 	result += datetime.timedelta( days = julianDay - 1 )
@@ -297,7 +309,170 @@ def ReplaceList( object, substitutions ):
 	return object
 
 def ReverseLists( lists ):
-	tLists = apply( zip, lists )
+	tLists = zip( *lists )
 	tLists.reverse()
-	return apply( zip, tLists )
+	return zip( *tLists )
+
+def RegKeyEnumerator( key ):
+	index = 0
+	try:
+		while 1:
+			yield win32api.RegEnumKey( key, index )
+			index += 1
+	except win32api.error: pass
+
+# calculate the seconds for each period
+secondsPerMinute = 60
+secondsPerHour = 60 * secondsPerMinute
+secondsPerDay = 24 * secondsPerHour
+secondsPerYear = 365 * secondsPerDay
+
+def getPeriodSeconds( period ):
+	"""
+	return the number of seconds in the specified period
+	"""
+	try:
+		if isinstance( period, basestring ):
+			result = eval( 'secondsPer%s' % string.capwords( period ) )
+		elif isinstance( period, ( int, long ) ):
+			result = period
+		else:
+			raise TypeError, 'period must be a string or integer'
+	except NameError:
+		raise ValueError, "period not in ( minute, hour, day, year )"
+	return result
+
+def getDateFormatString( period ):
+	"""
+	for a given period (e.g. 'month', 'day', or some numeric interval
+	such as 3600 (in secs)), return the format string that can be
+	used with strftime to format that time to specify the times
+	across that interval, but no more detailed.
+	so,
+	getDateFormatString( 'month' ) == '%Y-%m'
+	getDateFormatString( 3600 ) == getDateFormatString( 'hour' ) == '%Y-%m-%d %H'
+	getDateFormatString( None ) -> raise TypeError
+	getDateFormatString( 'garbage' ) -> raise ValueError
+	"""
+	# handle the special case of 'month' which doesn't have
+	#  a static interval in seconds
+	if isinstance( period, basestring ) and string.lower( period ) == 'month':
+		result = '%Y-%m'
+	else:
+		filePeriodSecs = getPeriodSeconds( period )
+		formatPieces = ( '%Y', '-%m-%d', ' %H', '-%M', '-%S' )
+		intervals = ( secondsPerYear, secondsPerDay, secondsPerHour, secondsPerMinute, 1 )
+		mods = map( lambda interval: filePeriodSecs % interval, intervals )
+		formatPieces = formatPieces[ : mods.index( 0 ) + 1 ]
+		result = string.join( formatPieces, '' )
+	return result
+
+import logging, time
+class TimestampFileHandler( logging.StreamHandler ):
+	"""
+	A logging handler which will log to a file, similar to
+	logging.handlers.RotatingFileHandler, but instead of
+	appending a number, uses a timestamp to periodically select
+	new file names to log to.
+	"""
+	def __init__( self, baseFilename, mode='a', period='day', timeConverter=time.localtime ):
+		self.baseFilename = baseFilename
+		self.mode = mode
+		self._setPeriod( period )
+		self.timeConverter = timeConverter
+		logging.StreamHandler.__init__( self, None )
+
+	def _setPeriod( self, period ):
+		"""
+		Set the period for the timestamp.  If period is 0 or None, no period will be used
+		"""
+		self._period = period
+		if period:
+			self._periodSeconds = getPeriodSeconds( self._period )
+			self._dateFormat = getDateFormatString( self._periodSeconds )
+		else:
+			self._periodSeconds = 0
+			self._dateFormat = ''
+
+	def _getPeriod( self ):
+		return self._period
+	period = property( _getPeriod, _setPeriod )
 	
+	def _useFile( self, filename ):
+		self._ensureDirectoryExists( filename )
+		self.stream = open( filename, self.mode )
+
+	def _ensureDirectoryExists( self, filename ):
+		dirname = os.path.dirname( filename )
+		if dirname and not os.path.exists( dirname ):
+			os.makedirs( dirname )
+
+	def getFilename( self, t ):
+		"""
+		Return the appropriate filename for the given time
+		based on the defined period.
+		"""
+		root, ext = os.path.splitext( self.baseFilename )
+		# remove seconds not significant to the period
+		if self._periodSeconds:
+			t -= t % self._periodSeconds
+		# convert it to a time tuple for formatting using
+		#  the supplied converter
+		timeTuple = self.timeConverter( t )
+		# append the datestring to the filename
+		appendedDate = time.strftime( self._dateFormat, timeTuple )
+		if appendedDate:
+			# in the future, it would be nice for this format
+			#  to be supplied as a parameter.
+			result = root + ' ' + appendedDate + ext
+		else:
+			result = self.baseFilename
+		return result
+
+	def emit(self, record):
+		"""
+		Emit a record.
+
+		Output the record to the file, ensuring that the currently-
+		opened file has the correct date.
+		"""
+		now = time.time()
+		currentName = self.getFilename( now )
+		try:
+			if not self.stream.name == currentName:
+				self._useFile( currentName )
+		except AttributeError:
+			# a stream has not been created, so create one.
+			self._useFile( currentName )
+		logging.StreamHandler.emit(self, record)
+
+	def close( self ):
+		"""
+		Closes the stream.
+		"""
+		try:
+			self.stream.close()
+		except AttributeError: pass
+
+class LogFileWrapper( object ):
+	"""
+	Emulates a file to replace stdout or stderr or
+	anothe file object and redirects its output to
+	a logger.
+	
+	Since data will often be send in partial lines or
+	multiple lines, data is queued up until a new line
+	is received.  Each line of text is send to the
+	logger separately.
+	"""
+	def __init__(self, name, lvl = logging.DEBUG ):
+		self.logger = logging.getLogger( name )
+		self.lvl = lvl
+		self.queued = ''
+
+	def write(self, data):
+		data = self.queued + data
+		data = string.split( data, '\n')
+		for line in data[:-1]:
+			self.logger.log( self.lvl, line )
+		self.queued = data[-1]
