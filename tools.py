@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 28 $'[11:-2]
+__version__ = '$Revision: 29 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-05-23 18:55 $'[10:-2]
+__date__ = '$Modtime: 04-05-24 16:58 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -634,7 +634,7 @@ class hashSplit( dict ):
 
 	def __getitem__( self, i ):
 		try:
-			return dict.__getitem__( self, self.func( i ) )
+			return dict.__getitem__( self, i )
 		except KeyError:
 			return self.__searchForItem__( i )
 
