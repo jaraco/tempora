@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 22 $'[11:-2]
+__version__ = '$Revision: 23 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-04-21 18:03 $'[10:-2]
+__date__ = '$Modtime: 04-05-06 17:37 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -45,13 +45,19 @@ def makeRows( list, nColumns ):
 	# result is now a list of columns... transpose it to return a list of rows
 	return map( None, *result )
 
+from urlparse import urlparse
 class HTTPQuery( dict ):
 	"""HTTP Query takes as an argument an HTTP query request
-	(from the url after ?) and maps all of the pairs in itself as a dictionary.
+	(from the url after ?) or a URL and maps all of the query pairs
+	in itself as a dictionary.
 	>>> HTTPQuery( 'a=b&c=3&4=20' ) == { 'a':'b', 'c':'3', '4':'20' }
 	True
+	>>> HTTPQuery( 'http://www.jaraco.com/?test=30' ) == { 'test':'30'}
+	True
 	"""
+
 	def __init__( self, query ):
+		query = HTTPQuery.__QueryFromURL__( query ) or query
 		if isinstance( query, basestring ):
 			items = query.split( '&' )
 			itemPairs = map( splitter( '=' ), items )
@@ -63,6 +69,11 @@ class HTTPQuery( dict ):
 
 	def __repr__( self ):
 		return urllib.urlencode( self )
+
+	def __QueryFromURL__( url ):
+		"Return the query portion of a URL"
+		return urlparse( url )[4]
+	__QueryFromURL__ = staticmethod( __QueryFromURL__ )
 
 def chunkGenerator( seq, size ):
 	for i in range( 0, len(seq), size ):
@@ -582,3 +593,15 @@ def readChunks( file, chunkSize = 2048, updateFunc = lambda x: None ):
 		if not res: break
 		updateFunc( len( res ) )
 		yield res
+
+def binarySplit( seq, func = operator.truth ):
+	"""Split a sequence into two sequences:  the first is elements that return
+	True for func( element ) and the second for False == func( element )."""
+	# note, this is the same as:
+	# return hashSplit( seq, func )
+	pass #stubbed
+
+def hashSplit( seq, func ):
+	"""Split a sequence into n sequences where n is determined by the number
+	of distinct values returned by func( element ) for each element in the sequence."""
+	pass #stubbed
