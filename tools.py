@@ -1,5 +1,6 @@
 # tools.py:
 #  small functions or classes that don't have a home elsewhere
+import string, urllib
 
 # DictMap is much like the built-in function map.  It takes a dictionary
 #  and applys a function to the values of that dictionary, returning a
@@ -7,7 +8,7 @@
 def DictMap( function, dictionary ):
 	return dict( zip( dictionary.keys(), map( function, dictionary.values() ) ) )
 
-# CoerceType takes a value and attempts to convert it to a float, long, or int.mro
+# CoerceType takes a value and attempts to convert it to a float, long, or int.
 #  If none of the conversions are successful, the original value is returned.
 def CoerceType( value ):
 	result = value
@@ -34,10 +35,10 @@ class HTTPQuery( dict ):
 	def isValidQuery( self, query ):
 		return query
 
-    def __repr__( self ):
-        itemPairs = self.items()
-        quoteSequence = lambda l: map( urllib.quote, l )
-        itemPairs = map( quoteSequence, itemPairs )
-        joinEqual = lambda l: string.join( l, '=' )
-        items = map( joinEqual, itemPairs )
-        return string.join( items, '&' )
+	def __repr__( self ):
+		itemPairs = self.items()
+		quoteSequence = lambda l: map( urllib.quote, l )
+		itemPairs = map( quoteSequence, itemPairs )
+		joinEqual = lambda l: string.join( l, '=' )
+		items = map( joinEqual, itemPairs )
+		return string.join( items, '&' )
