@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 21 $'[11:-2]
+__version__ = '$Revision: 22 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-04-16 11:35 $'[10:-2]
+__date__ = '$Modtime: 04-04-21 18:03 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -114,12 +114,14 @@ class DMS( object ):
 			(?:('|min))?	# optionally a minutes symbol or the word 'min' (not saved)
 			\s*?			# optional whitespace (matched minimally)
 			[, ]?			# optional comma or space (as a delimiter)
-			\s*				# optional whitespace
-			(?P<sec>\d+		# number of seconds
-				(?:\.\d+)?	# optional fractional number of seconds (not saved separately)
-			)				# (all saved as 'sec')
-			\s*				# optional whitespace
-			(?:("|sec))?	# optionally a minutes symbol or the word 'min' (not saved)
+			(?:			# begin optional seconds
+				\s*				# optional whitespace
+				(?P<sec>\d+		# number of seconds
+					(?:\.\d+)?	# optional fractional number of seconds (not saved separately)
+				)				# (all saved as 'sec')
+				\s*				# optional whitespace
+				(?:("|sec))?	# optionally a minutes symbol or the word 'sec' (not saved)
+			)?				# end optional seconds
 		)?				# end optional minutes and seconds
 		\s*				# optional whitespace
 		([NSEW])?		# optional directional specifier
@@ -157,7 +159,7 @@ class DMS( object ):
 		# get the negative sign
 		isNegative = operator.truth( dmsMatch.group(1) )
 		# get SW direction
-		isSouthOrWest = operator.truth( dmsMatch.groups()[-1] )
+		isSouthOrWest = operator.truth( dmsMatch.groups()[-1] ) and dmsMatch.groups()[-1].lower() in ( 's', 'w' )
 		d = dmsMatch.groupdict()
 		# set min & sec to zero if they weren't matched
 		if d['min'] is None: d['min'] = 0
@@ -572,3 +574,11 @@ def flatten( l ):
 		result = l
 	return result
 
+def readChunks( file, chunkSize = 2048, updateFunc = lambda x: None ):
+	"""Read file in chunks of size chunkSize (or smaller).
+	If updateFunc is specified, call it on every chunk with the amount read."""
+	while( 1 ):
+		res = file.read( chunkSize )
+		if not res: break
+		updateFunc( len( res ) )
+		yield res
