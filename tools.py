@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 32 $'[11:-2]
+__version__ = '$Revision: 33 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-06-14 16:51 $'[10:-2]
+__date__ = '$Modtime: 10-08-04 16:45 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -60,6 +60,8 @@ class HTTPQuery( dict ):
 		query = HTTPQuery.__QueryFromURL__( query ) or query
 		if isinstance( query, basestring ):
 			items = query.split( '&' )
+			# remove any empty values
+			items = filter( None, items )
 			itemPairs = map( splitter( '=' ), items )
 			unquoteSequence = lambda l: map( urllib.unquote, l )
 			query = map( unquoteSequence, itemPairs )
