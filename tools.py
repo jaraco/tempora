@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 26 $'[11:-2]
+__version__ = '$Revision: 27 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-05-14 12:24 $'[10:-2]
+__date__ = '$Modtime: 04-05-20 16:56 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -594,54 +594,126 @@ def readChunks( file, chunkSize = 2048, updateFunc = lambda x: None ):
 		updateFunc( len( res ) )
 		yield res
 
-def binarySplit( seq, func = operator.truth ):
+def binarySplit( seq, func = bool ):
 	"""Split a sequence into two sequences:  the first is elements that return
-	True for func( element ) and the second for False == func( element )."""
-	# note, this is the same as:
-	# return hashSplit( seq, func )
-	pass #stubbed
+	True for func( element ) and the second for False == func( element ).
+	By default, func = bool, so uses the truth value of the object."""
+	queues = hashSplit( seq, func )
+	return queues.getFirstNQueues( 2 )
 
 class hashSplit( dict ):
 	"""Split a sequence into n sequences where n is determined by the number
-	of distinct values returned by hash( func( element ) ) for each element in the sequence."""
+	of distinct values returned by hash( func( element ) ) for each element in the sequence.
+	>>> truthsplit = tools.hashSplit( [ 'Test', '', 30, None ], bool )
+	>>> trueItems = truthsplit[True]
+	>>> falseItems = truthsplit[False]
+	>>> tuple( falseItems )
+	('', None)
+	>>> tuple( trueItems )
+	('Test', 30)
+	>>> everyThirdSplit = tools.hashSplit( xrange( 99 ), lambda n: n%3 )
+	>>> zeros = everyThirdSplit[0]
+	>>> ones = everyThirdSplit[1]
+	>>> twos = everyThirdSplit[2]
+	>>> zeros.next()
+	0
+	>>> zeros.next()
+	3
+	>>> ones.next()
+	1
+	>>> twos.next()
+	2
+	>>> ones.next()
+	4
+	>>> everyThirdSplit[66].next()
+	6
+	"""
 	def __init__( self, sequence, func = lambda x: x ):
-		self.sequence = sequence
+		self.sequence = iter( sequence )
 		self.func = func
 
 	def __getitem__( self, i ):
 		try:
-			return dict.__getitem__( self, self.func( item ) )
+			return dict.__getitem__( self, self.func( i ) )
 		except KeyError:
-			return self.searchForItem( i )
+			return self.__searchForItem__( i )
 
 	def __getNext__( self ):
+		"get the next item from the sequence and queue it up"
 		item = self.sequence.next()
 		try:
 			queue = dict.__getitem__( self, self.func( item ) )
 		except KeyError:
-			queue = iterQueue( self.__getitem__ )
+			queue = iterQueue( self.__getNext__ )
 			self[ self.func( item ) ] = queue
 		queue.enqueue( item )
 
 	def __searchForItem__( self, i ):
-		self.__getNext__()
-		return self[ i ]
+		"search for the queue that would hold item i"
+		try:
+			self.__getNext__()
+			return self[ i ]
+		except StopIteration:
+			return iter([])
+
+	def getFirstNQueues( self, n ):
+		"""Run through the sequence until n queues are created and return
+		them.  If fewer are created, return those plus empty iterables to
+		compensate."""
+		try:
+			while len( self ) < n:
+				self.__getNext__()
+		except StopIteration:
+			pass
+		createEmptyIterable = lambda x: iter([])
+		return self.values() + map( createEmptyIterable, xrange( n - len( self ) ) )
 
 class iterQueue( object ):
 	def __init__( self, getNext ):
 		self.queued = []
 		self.getNext = getNext
-		
+
+	def __iter__( self ):
+		return self
+
 	def next( self ):
-		if not self.queued:
-			result = self.getNext()
-		else:
-			result = self.queued.pop()
-		return result
+		while not self.queued:
+			self.getNext()
+		return self.queued.pop()
 
 	def enqueue( self, item ):
 		self.queued.insert( 0, item )
-		
+
+class testSplit( hashSplit ):
+	def __init__( self, sequence ):
+		raise NotImplementedError, 'This class is just an idea.  Don\'t use it'
+		self.sequence = iter( sequence )
+
+	def __getitem__( self, test ):
+		try:
+			return dict.__getitem__( self, test )
+		except KeyError:
+			return self.__searchForTest__( test )
+
+	def __searchForTest__( self, test ):
+		"search for the queue that holds items that return true for test"
+		try:
+			self[ test ] = self.__getNext__()
+			return self[ test ]
+		except StopIteration:
+			return iter([])
+
+	def __getNext__( self ):
+		"get the next item from the sequence and queue it up"
+		item = self.sequence.next()
+		try:
+			queue = dict.__getitem__( self, self.func( item ) )
+		except KeyError:
+			queue = iterQueue( self.__getNext__ )
+			self[ self.func( item ) ] = queue
+		queue.enqueue( item )
+
+
 def ordinalth(n):
 	"""Return the ordinal with 'st', 'th', or 'nd' appended as appropriate.
 	>>> map( ordinalth, xrange( -5, 22 ) )
