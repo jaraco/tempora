@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 25 $'[11:-2]
+__version__ = '$Revision: 26 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-05-14 11:29 $'[10:-2]
+__date__ = '$Modtime: 04-05-14 12:24 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -627,7 +627,7 @@ class hashSplit( dict ):
 		self.__getNext__()
 		return self[ i ]
 
-class iterQueue( iter ):
+class iterQueue( object ):
 	def __init__( self, getNext ):
 		self.queued = []
 		self.getNext = getNext
@@ -642,11 +642,6 @@ class iterQueue( iter ):
 	def enqueue( self, item ):
 		self.queued.insert( 0, item )
 		
-def callbackIter( getNext ):
-	queue = []
-	while 1:
-		
-
 def ordinalth(n):
 	"""Return the ordinal with 'st', 'th', or 'nd' appended as appropriate.
 	>>> map( ordinalth, xrange( -5, 22 ) )
