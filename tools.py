@@ -512,4 +512,16 @@ class DTParser( object ):
 		except ValueError:
 			result = False
 		return result
-	
+
+# some useful constants
+# mean vernal equinox year expressed in oscillations of atomic cesium at the year 2000
+# see http://webexhibits.org/calendars/timeline.html for more info
+osc_per_year = 290091329207984000
+osc_per_second = 9192631770
+seconds_per_year = 31556940
+seconds_per_minute = 60
+minutes_per_hour = 60
+hours_per_day = 24
+seconds_per_hour = seconds_per_minute * minutes_per_hour
+seconds_per_day = seconds_per_hour * hours_per_day
+days_per_year = float( seconds_per_year ) / seconds_per_day
