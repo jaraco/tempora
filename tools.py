@@ -5,8 +5,9 @@ tools.py:
   small functions or classes that don't have a home elsewhere
 """
 
-__version__ = '$Revision: 18 $'[11:-1]
-__author__ = '$Author: Jaraco $'[9:-1]
+__version__ = '$Revision: 19 $'[11:-2]
+__author__ = '$Author: Jaraco $'[9:-2]
+__date__ = '$Modtime: 04-04-02 17:49 $'[10:-2]
 
 import string, urllib, os
 import logging
