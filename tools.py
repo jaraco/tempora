@@ -251,14 +251,19 @@ class Win32TimeZone( datetime.tzinfo ):
 
 	def dst( self, dt ):
 		assert dt.tzinfo is self
+		result = self.standardBiasOffset
 
-		dstStart = self.GetDSTStartTime( dt.year )
-		dstEnd = self.GetDSTEndTime( dt.year )
+		try:
+			dstStart = self.GetDSTStartTime( dt.year )
+			dstEnd = self.GetDSTEndTime( dt.year )
 
-		if dstStart <= dt.replace( tzinfo=None ) < dstEnd and not self.fixedStandardTime:
-			result = self.daylightBiasOffset
-		else:
-			result = self.standardBiasOffset
+			if dstStart <= dt.replace( tzinfo=None ) < dstEnd and not self.fixedStandardTime:
+				result = self.daylightBiasOffset
+		except ValueError:
+			# there was probably an error parsing the time zone, which is normal when a
+			#  start and end time are not specified.
+			pass
+
 		return result
 
 	def GetDSTStartTime( self, year ):
@@ -270,7 +275,7 @@ class Win32TimeZone( datetime.tzinfo ):
 	def LocateDay( self, year, win32SystemTime ):
 		month = win32SystemTime[ 1 ]
 		# MS stores Sunday as 0, Python datetime stores Monday as zero
-		targetWeekday = win32SystemTime[ 2 ] + 6 % 7
+		targetWeekday = ( win32SystemTime[ 2 ] + 6 ) % 7
 		# win32SystemTime[3] is the week of the month, so the following
 		#  is the first possible day
 		day = ( win32SystemTime[ 3 ] - 1 ) * 7 + 1
