@@ -4,9 +4,11 @@
 tools.py:
   small functions or classes that don't have a home elsewhere
 """
-#from __future__ import generators
 
 import string, urllib, os
+import logging
+
+log = logging.getLogger( 'tools' )
 
 # DictMap is much like the built-in function map.  It takes a dictionary
 #  and applys a function to the values of that dictionary, returning a
