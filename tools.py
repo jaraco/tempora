@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 24 $'[11:-2]
+__version__ = '$Revision: 25 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-05-14 10:24 $'[10:-2]
+__date__ = '$Modtime: 04-05-14 11:29 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -601,10 +601,51 @@ def binarySplit( seq, func = operator.truth ):
 	# return hashSplit( seq, func )
 	pass #stubbed
 
-def hashSplit( seq, func ):
+class hashSplit( dict ):
 	"""Split a sequence into n sequences where n is determined by the number
-	of distinct values returned by func( element ) for each element in the sequence."""
-	pass #stubbed
+	of distinct values returned by hash( func( element ) ) for each element in the sequence."""
+	def __init__( self, sequence, func = lambda x: x ):
+		self.sequence = sequence
+		self.func = func
+
+	def __getitem__( self, i ):
+		try:
+			return dict.__getitem__( self, self.func( item ) )
+		except KeyError:
+			return self.searchForItem( i )
+
+	def __getNext__( self ):
+		item = self.sequence.next()
+		try:
+			queue = dict.__getitem__( self, self.func( item ) )
+		except KeyError:
+			queue = iterQueue( self.__getitem__ )
+			self[ self.func( item ) ] = queue
+		queue.enqueue( item )
+
+	def __searchForItem__( self, i ):
+		self.__getNext__()
+		return self[ i ]
+
+class iterQueue( iter ):
+	def __init__( self, getNext ):
+		self.queued = []
+		self.getNext = getNext
+		
+	def next( self ):
+		if not self.queued:
+			result = self.getNext()
+		else:
+			result = self.queued.pop()
+		return result
+
+	def enqueue( self, item ):
+		self.queued.insert( 0, item )
+		
+def callbackIter( getNext ):
+	queue = []
+	while 1:
+		
 
 def ordinalth(n):
 	"""Return the ordinal with 'st', 'th', or 'nd' appended as appropriate.
