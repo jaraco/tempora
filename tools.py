@@ -464,11 +464,35 @@ class ciString( str ):
 			return self._lower
 
 class ciDict( dict ):
-	"A case-insensitive dictionary (requires ciString)"
+	"""A case-insensitive dictionary (keys are compared as insensitive
+	if they are strings.
+	>>> d = ciDict()
+	>>> d['heLlo'] = 'world'
+	>>> d
+	{'heLlo': 'world'}
+	>>> d['hello']
+	'world'
+	>>> ciDict( { 'heLlo': 'world' } )
+	{'heLlo': 'world'}
+	>>> d = ciDict( { 'heLlo': 'world' } )
+	>>> d['hello']
+	'world'
+	>>> d
+	{'heLlo': 'world'}
+	>>> d = ciDict( { 'heLlo': 'world', 'Hello': 'world' } )
+	>>> d
+	{'heLlo': 'world'}
+	"""
 	def __setitem__( self, key, val ):
 		if isinstance( key, basestring ):
 			key = ciString( key )
 		dict.__setitem__( self, key, val )
+
+	def __init__( self, *args, **kargs ):
+		# build a dictionary using the default constructs
+		d = dict( *args, **kargs )
+		# build this dictionary using case insensitivity.
+		map( self.__setitem__, d.keys(), d.values() )
 
 class DTParser( object ):
 	"""Datetime parser: parses a date-time string using multiple possible formats.
