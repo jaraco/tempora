@@ -442,7 +442,13 @@ class odict( dict ):
 
 class ciString( str ):
 	"""A case insensitive string class; behaves just like str
-	except compares equal when the only variation is case."""
+	except compares equal when the only variation is case.
+	>>> s = tools.ciString( 'hello world' )
+	>>> s == 'Hello World'
+	True
+	>>> 'Hello World' == s
+	True
+	"""
 	def __cmp__( self, other ):
 		return self.lower().__cmp__( other.lower() )
 	def __eq__( self, other ):
