@@ -5,9 +5,9 @@ tools.py:
   small functions or classes that don't have a home elsewhere
 """
 
-__version__ = '$Revision: 19 $'[11:-2]
+__version__ = '$Revision: 20 $'[11:-2]
 __author__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-04-02 17:49 $'[10:-2]
+__date__ = '$Modtime: 04-04-02 18:07 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -44,30 +44,24 @@ def makeRows( list, nColumns ):
 	# result is now a list of columns... transpose it to return a list of rows
 	return map( None, *result )
 
-# HTTP Query takes as an argument an HTTP query request (from the url after ?)
-#  and maps all of the pairs in itself as a dictionary.
-# So: HTTPQuery( 'a=b&c=3&4=20' ) == { 'a':'b', 'c':'3', '4':'20' }
 class HTTPQuery( dict ):
+	"""HTTP Query takes as an argument an HTTP query request
+	(from the url after ?) and maps all of the pairs in itself as a dictionary.
+	>>> HTTPQuery( 'a=b&c=3&4=20' ) == { 'a':'b', 'c':'3', '4':'20' }
+	True
+	"""
 	def __init__( self, query ):
-		if not self.isValidQuery( query ):
-			raise ValueError, 'Invalid query: %s' % query
-		items = string.split( query, '&' )
-		splitEqual = lambda s: string.split( s, '=' )
-		itemPairs = map( splitEqual, items )
-		unquoteSequence = lambda l: map( urllib.unquote, l )
-		itemPairs = map( unquoteSequence, itemPairs )
-		self.update( dict( itemPairs ) )
-
-	def isValidQuery( self, query ):
-		return query
+		if isinstance( query, basestring ):
+			items = query.split( '&' )
+			itemPairs = map( splitter( '=' ), items )
+			unquoteSequence = lambda l: map( urllib.unquote, l )
+			query = map( unquoteSequence, itemPairs )
+		if isinstance( query, ( tuple, list ) ):
+			query = dict( query )
+		self.update( query )
 
 	def __repr__( self ):
-		itemPairs = self.items()
-		quoteSequence = lambda l: map( urllib.quote, l )
-		itemPairs = map( quoteSequence, itemPairs )
-		joinEqual = lambda l: string.join( l, '=' )
-		items = map( joinEqual, itemPairs )
-		return string.join( items, '&' )
+		return urllib.urlencode( self )
 
 def chunkGenerator( seq, size ):
 	for i in range( 0, len(seq), size ):
