@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 34 $'[11:-2]
+__version__ = '$Revision: 35 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 7-09-04 16:08 $'[10:-2]
+__date__ = '$Modtime: 8-09-04 15:37 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -457,7 +457,7 @@ class odict( dict ):
 class ciString( str ):
 	"""A case insensitive string class; behaves just like str
 	except compares equal when the only variation is case.
-	>>> s = tools.ciString( 'hello world' )
+	>>> s = ciString( 'hello world' )
 	>>> s == 'Hello World'
 	True
 	>>> 'Hello World' == s
@@ -520,13 +520,16 @@ class DTParser( object ):
 	(1994, 12, 16, 0, 0, 0, 4, 350, -1)
 	>>> dateParser.parse( '5/19/2003' )
 	(2003, 5, 19, 0, 0, 0, 0, 139, -1)
-	>>> dtParser = tools.DTParser( ( '%Y-%m-%d %H:%M:%S', '%a %b %d %H:%M:%S %Y' ) )
+	>>> dtParser = DTParser( ( '%Y-%m-%d %H:%M:%S', '%a %b %d %H:%M:%S %Y' ) )
 	>>> dtParser.parse( '2003-12-20 19:13:26' )
 	(2003, 12, 20, 19, 13, 26, 5, 354, -1)
 	>>> dtParser.parse( 'Tue Jan 20 16:19:33 2004' )
 	(2004, 1, 20, 16, 19, 33, 1, 20, -1)
+
 	Be forewarned:
 	>>> DTParser( ( '%H%M', '%H%M%S' ) ).parse( '732' )
+	Traceback (most recent call last):
+		...
 	ValueError: More than one format string matched target 732.
 	"""
 	formats = ( )
@@ -606,14 +609,14 @@ def binarySplit( seq, func = bool ):
 class hashSplit( dict ):
 	"""Split a sequence into n sequences where n is determined by the number
 	of distinct values returned by hash( func( element ) ) for each element in the sequence.
-	>>> truthsplit = tools.hashSplit( [ 'Test', '', 30, None ], bool )
+	>>> truthsplit = hashSplit( [ 'Test', '', 30, None ], bool )
 	>>> trueItems = truthsplit[True]
 	>>> falseItems = truthsplit[False]
 	>>> tuple( falseItems )
 	('', None)
 	>>> tuple( trueItems )
 	('Test', 30)
-	>>> everyThirdSplit = tools.hashSplit( xrange( 99 ), lambda n: n%3 )
+	>>> everyThirdSplit = hashSplit( xrange( 99 ), lambda n: n%3 )
 	>>> zeros = everyThirdSplit[0]
 	>>> ones = everyThirdSplit[1]
 	>>> twos = everyThirdSplit[2]
@@ -627,8 +630,6 @@ class hashSplit( dict ):
 	2
 	>>> ones.next()
 	4
-	>>> everyThirdSplit[66].next()
-	6
 	"""
 	def __init__( self, sequence, func = lambda x: x ):
 		self.sequence = iter( sequence )
@@ -814,50 +815,45 @@ __dt_from___builtin___int__ = __dt_from_timestamp__
 def __dt_from_time_struct_time__( s ):
 	return datetime.datetime( *s[:6] )
 
-class StatefulMod( object ):
-	"""Take the modulus of a series of numbers in succession.  Each successive call should be the same parts of the same
-	number.
-	For example, this might be used to calculate the modulus of a date/time span given another date/time span.
-	>>> sm = StatefulMod()
-	>>> sm( 999, 0 )
-	0
-	>>> sm( 653, 20 ) == 653 % 20
-	True
-	"""
-	def __init__( self ):
-		self.foundFirst = False
-		
-	def __call__( self, a, b ):
-		if b == 0:
-			result = ( 0, a )[ self.foundFirst ]
-		else:
-			self.foundFirst = True
-			result = a % b
-		return result
-
-	def __del__( self ):
-		if not self.foundFirst:
-			raise ValueError, "Stateful mod never detected a non-zero value in the divisor"
-		
-def DatetimeMod( dt, period, start = datetime.datetime( 1970, 1, 1 ) ):
+def DatetimeMod( dt, period, start = None ):
 	"""Find the time which is the specified date/time truncated to the time delta
-	relative to the start date/time."""
+	relative to the start date/time.
+	By default, the start time is midnight of the same day as the specified date/time.
+	>>> DatetimeMod( datetime.datetime( 2004, 1, 2, 3 ), datetime.timedelta( days = 1.5 ), start = datetime.datetime( 2004, 1, 1 ) )
+	datetime.datetime(2004, 1, 1, 0, 0)
+	>>> DatetimeMod( datetime.datetime( 2004, 1, 2, 13 ), datetime.timedelta( days = 1.5 ), start = datetime.datetime( 2004, 1, 1 ) )
+	datetime.datetime(2004, 1, 2, 12, 0)
+	>>> DatetimeMod( datetime.datetime( 2004, 1, 2, 13 ), datetime.timedelta( days = 7 ), start = datetime.datetime( 2004, 1, 1 ) )
+	datetime.datetime(2004, 1, 1, 0, 0)
+	>>> DatetimeMod( datetime.datetime( 2004, 1, 10, 13 ), datetime.timedelta( days = 7 ), start = datetime.datetime( 2004, 1, 1 ) )
+	datetime.datetime(2004, 1, 8, 0, 0)
+"""
+	if start is None:
+		# use midnight of the same day
+		start = datetime.datetime.combine( dt.date(), datetime.time() )
 	# calculate the difference between the specified time and the start date.
 	delta = dt - start
-	# now find the modulus (remainder) of the delta divided by the period.
-	sf = StatefulMod()
-	modParams = map( GetTimeDeltaParams, ( delta, period ) )
-	offset = datetime.timedelta( *map( sf, *modParams ) )
+	# now aggregate the delta and the period into microseconds
+	# I use microseconds because that's the highest precision of these time pieces.  Also,
+	#  using microseconds ensures perfect precision (no floating point errors).
+	GetTimeDeltaMicroseconds = lambda td: ( td.days * secondsPerDay + td.seconds ) * 1000000 + td.microseconds
+	delta, period = map( GetTimeDeltaMicroseconds , ( delta, period ) )
+	offset = datetime.timedelta( microseconds = delta % period )
 	# the result is the original specified time minus the offset
 	result = dt - offset
 	return result
 
-def GetTimeDeltaParams( td ):
-	return td.days, td.seconds, td.microseconds
-
-def DatetimeRound( dt, period ):
+def DatetimeRound( dt, period, start = None ):
 	"""Find the nearest even period for the specified date/time.
 	>>> DatetimeRound( datetime.datetime( 2004, 11, 13, 8, 11, 13 ), datetime.timedelta( hours = 1 ) )
-	datetime.datetime( 2004, 11, 13, 8, 0, 0 )
+	datetime.datetime(2004, 11, 13, 8, 0)
+	>>> DatetimeRound( datetime.datetime( 2004, 11, 13, 8, 31, 13 ), datetime.timedelta( hours = 1 ) )
+	datetime.datetime(2004, 11, 13, 9, 0)
+	>>> DatetimeRound( datetime.datetime( 2004, 11, 13, 8, 30 ), datetime.timedelta( hours = 1 ) )
+	datetime.datetime(2004, 11, 13, 9, 0)
 	"""
+	result = DatetimeMod( dt, period, start )
+	if abs( dt - result ) >= period / 2:
+		result += period
+	return result
 	
