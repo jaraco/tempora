@@ -437,3 +437,27 @@ class odict( dict ):
 
 	def values( self ):
 		return map( self.get, self._keys )
+
+class ciString( str ):
+	"""A case insensitive string class; behaves just like str
+	except compares equal when the only variation is case."""
+	def __cmp__( self, other ):
+		return self.lower().__cmp__( other.lower() )
+	def __eq__( self, other ):
+		return self.lower() == other.lower()
+	def __hash__( self ):
+		return hash( self.lower() )
+	# cache lower since it's likely to be called frequently.
+	def lower( self ):
+		try:
+			return self._lower
+		except AttributeError:
+			self._lower = str.lower( self )
+			return self._lower
+
+class ciDict( dict ):
+	"A case-insensitive dictionary (requires ciString)"
+	def __setitem__( self, key, val ):
+		if isinstance( key, basestring ):
+			key = ciString( key )
+		dict.__setitem__( self, key, val )
