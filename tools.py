@@ -6,7 +6,7 @@ tools.py:
 """
 #from __future__ import generators
 
-import string, urllib
+import string, urllib, os
 
 # DictMap is much like the built-in function map.  It takes a dictionary
 #  and applys a function to the values of that dictionary, returning a
@@ -184,131 +184,6 @@ def GetNearestYearForDay( day ):
 		result += 1
 	return result
 
-# deprecated with Python 2.3, use datetime.datetime
-def ConvertToUTC( t, timeZoneName ):
-	t = time.struct_time( t )
-	tzi = TimeZoneInformation( timeZoneName )
-	if t.tm_isdst in (1,-1):
-		raise RuntimeError, 'DST is not currently supported in this function'
-	elif t.tm_isdst == 0:
-		result = map( operator.add, t, (0,0,0,0,tzi.standardBias,0,0,0,0) )
-	else:
-		raise ValueError, 'DST flag not in (-1,0-1)'
-	result = time.localtime( time.mktime( result ) )
-	return result
-
-import os, win32api, win32con, struct, datetime
-class Win32TimeZone( datetime.tzinfo ):
-	def __init__( self, timeZoneName, fixedStandardTime=False ):
-		self.timeZoneName = timeZoneName
-		# this key works for WinNT+, but not for the Win95 line.
-		tzRegKey = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones'
-		tzRegKeyPath = os.path.join( tzRegKey, timeZoneName )
-		try:
-			key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
-										 tzRegKeyPath,
-										 0,
-										 win32con.KEY_READ )
-		except:
-			raise ValueError, 'Timezone Name %s not found.' % timeZoneName
-		self.LoadInfoFromKey( key )
-		self.fixedStandardTime = fixedStandardTime
-
-	def LoadInfoFromKey( self, key ):
-		self.displayName = win32api.RegQueryValueEx( key, "Display" )[0]
-		self.standardName = win32api.RegQueryValueEx( key, "Std" )[0]
-		self.daylightName = win32api.RegQueryValueEx( key, "Dlt" )[0]
-		winTZI, type = win32api.RegQueryValueEx( key, "TZI" )
-		winTZI = struct.unpack( '3l8h8h', winTZI )
-		makeMinuteTimeDelta = lambda x: datetime.timedelta( minutes = x )
-		self.bias, self.standardBiasOffset, self.daylightBiasOffset = \
-				   map( makeMinuteTimeDelta, winTZI[:3] )
-		self.daylightEnd, self.daylightStart = winTZI[3:11], winTZI[11:19]
-
-	def __repr__( self ):
-		return '%s( %s )' % ( self.__class__.__name__, self.timeZoneName )
-
-	def __str__( self ):
-		return self.displayName
-
-	def tzname( self, dt ):
-		if self.dst( dt ) == self.daylightBiasOffset:
-			result = self.daylightName
-		elif self.dst( dt ) == self.standardBiasOffset:
-			result = self.standardName
-		return result
-		
-	def _getStandardBias( self ):
-		return self.bias + self.standardBiasOffset
-	standardBias = property( _getStandardBias )
-
-	def _getDaylightBias( self ):
-		return self.bias + self.daylightBiasOffset
-	daylightBias = property( _getDaylightBias )
-
-	def utcoffset( self, dt ):
-		return -( self.bias + self.dst( dt ) )
-
-	def dst( self, dt ):
-		assert dt.tzinfo is self
-		result = self.standardBiasOffset
-
-		try:
-			dstStart = self.GetDSTStartTime( dt.year )
-			dstEnd = self.GetDSTEndTime( dt.year )
-
-			if dstStart <= dt.replace( tzinfo=None ) < dstEnd and not self.fixedStandardTime:
-				result = self.daylightBiasOffset
-		except ValueError:
-			# there was probably an error parsing the time zone, which is normal when a
-			#  start and end time are not specified.
-			pass
-
-		return result
-
-	def GetDSTStartTime( self, year ):
-		return self.LocateDay( year, self.daylightStart )
-
-	def GetDSTEndTime( self, year ):
-		return self.LocateDay( year, self.daylightEnd )
-	
-	def LocateDay( self, year, win32SystemTime ):
-		month = win32SystemTime[ 1 ]
-		# MS stores Sunday as 0, Python datetime stores Monday as zero
-		targetWeekday = ( win32SystemTime[ 2 ] + 6 ) % 7
-		# win32SystemTime[3] is the week of the month, so the following
-		#  is the first possible day
-		day = ( win32SystemTime[ 3 ] - 1 ) * 7 + 1
-		hour, min, sec, msec = win32SystemTime[4:]
-		result = datetime.datetime( year, month, day, hour, min, sec, msec )
-		daysToGo = targetWeekday - result.weekday()
-		result += datetime.timedelta( daysToGo )
-		# if we selected a day in the month following the target month,
-		#  move back a week or two.
-		while result.month == month + 1:
-			result -= datetime.timedelta( weeks = 1 )
-		return result
-
-	def _GetTimeZones( ):
-		tzRegKey = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones'
-		key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
-									 tzRegKey,
-									 0,
-									 win32con.KEY_READ )
-		return RegKeyEnumerator( key )
-		
-	GetTimeZones = staticmethod( _GetTimeZones )
-
-	def _GetLocalTimeZone( ):
-		tzRegKey = r'SYSTEM\CurrentControlSet\Control\TimeZoneInformation'
-		key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
-									 tzRegKey,
-									 0,
-									 win32con.KEY_READ )
-		tzName, type = win32api.RegQueryValueEx( key, 'StandardName' )
-		return Win32TimeZone( tzName )
-	GetLocalTimeZone = staticmethod( _GetLocalTimeZone )
-
 def GregorianDate( year, julianDay ):
 	result = datetime.date( year, 1, 1 )
 	result += datetime.timedelta( days = julianDay - 1 )
@@ -327,14 +202,6 @@ def ReverseLists( lists ):
 	tLists = zip( *lists )
 	tLists.reverse()
 	return zip( *tLists )
-
-def RegKeyEnumerator( key ):
-	index = 0
-	try:
-		while 1:
-			yield win32api.RegEnumKey( key, index )
-			index += 1
-	except win32api.error: pass
 
 # calculate the seconds for each period
 secondsPerMinute = 60
