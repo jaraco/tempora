@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 35 $'[11:-2]
+__version__ = '$Revision: 36 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 8-09-04 15:37 $'[10:-2]
+__date__ = '$Modtime: 27-09-04 11:24 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -54,10 +54,14 @@ class HTTPQuery( dict ):
 	True
 	>>> HTTPQuery( 'http://www.jaraco.com/?test=30' ) == { 'test':'30'}
 	True
+	>>> HTTPQuery( 'http://www.jaraco.com/' ) == {}
+	True
+	>>> HTTPQuery( '' ) == {}
+	True
 	"""
-
 	def __init__( self, query ):
 		query = HTTPQuery.__QueryFromURL__( query ) or query
+		if not re.match( r'(\w+=\w+(&\w+=\w+)*)*$', query ): query = ()
 		if isinstance( query, basestring ):
 			items = query.split( '&' )
 			# remove any empty values
