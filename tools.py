@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 31 $'[11:-2]
+__version__ = '$Revision: 32 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-06-11 10:28 $'[10:-2]
+__date__ = '$Modtime: 04-06-14 16:51 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -762,3 +762,52 @@ def strptime( s, fmt, tzinfo = None ):
 	Also takes an optional tzinfo parameter which is a time zone info object."""
 	res = time.strptime( s, fmt )
 	return datetime.datetime( tzinfo = tzinfo, *res[:6] )
+
+def ConstructDatetime( *args, **kargs ):
+	"""Construct a datetime.datetime from a number of different time
+	types found in python and pythonwin"""
+	if len( args ) == 1:
+		arg = args[0]
+		method = __GetDTConstructor__( type( arg ).__module__, type( arg ).__name__ )
+		result = method( arg )
+		try:
+			result = result.replace( tzinfo = kargs.pop( 'tzinfo' ) )
+		except KeyError:
+			pass
+		if kargs:
+			raise TypeError, "%s is an invalid keyword argument for this function." % kargs.keys()[0]
+	else:
+		result = datetime.datetime( *args, **kargs )
+	return result
+
+def __GetDTConstructor__( moduleName, name ):
+	try:
+		return eval( '__dt_from_%(moduleName)s_%(name)s__' % vars() )
+	except NameError:
+		raise TypeError, "No way to construct datetime.datetime from %s.%s" % ( moduleName, name )
+
+def __dt_from_datetime_datetime__( source ):
+	dtattrs = ( 'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo' )
+	attrs = map( lambda a: getattr( source, a ), dtattrs )
+	return datetime.datetime( *attrs )
+
+def __dt_from___builtin___time__( pyt ):
+	"Construct a datetime.datetime from a pythonwin time"
+	fmtString = '%Y-%m-%d %H:%M:%S'
+	result = strptime( pyt.Format( fmtString ), fmtString )
+	# get milliseconds and microseconds.  The only way to do this is
+	#  to use the __float__ attribute of the time, which is in days.
+	microsecondsPerDay = secondsPerDay * 1000000
+	microseconds = float( pyt ) * microsecondsPerDay
+	microsecond = int( microseconds % 1000000 )
+	result = result.replace( microsecond = microsecond )
+	return result
+
+def __dt_from_timestamp__( timestamp ):
+	return datetime.datetime.utcfromtimestamp( timestamp )
+__dt_from___builtin___float__ = __dt_from_timestamp__
+__dt_from___builtin___long__ = __dt_from_timestamp__
+__dt_from___builtin___int__ = __dt_from_timestamp__
+
+def __dt_from_time_struct_time__( s ):
+	return datetime.datetime( *s[:6] )
