@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Revision: 33 $'[11:-2]
+__version__ = '$Revision: 34 $'[11:-2]
 __vssauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 10-08-04 16:45 $'[10:-2]
+__date__ = '$Modtime: 7-09-04 16:08 $'[10:-2]
 
 import string, urllib, os
 import logging
@@ -813,3 +813,51 @@ __dt_from___builtin___int__ = __dt_from_timestamp__
 
 def __dt_from_time_struct_time__( s ):
 	return datetime.datetime( *s[:6] )
+
+class StatefulMod( object ):
+	"""Take the modulus of a series of numbers in succession.  Each successive call should be the same parts of the same
+	number.
+	For example, this might be used to calculate the modulus of a date/time span given another date/time span.
+	>>> sm = StatefulMod()
+	>>> sm( 999, 0 )
+	0
+	>>> sm( 653, 20 ) == 653 % 20
+	True
+	"""
+	def __init__( self ):
+		self.foundFirst = False
+		
+	def __call__( self, a, b ):
+		if b == 0:
+			result = ( 0, a )[ self.foundFirst ]
+		else:
+			self.foundFirst = True
+			result = a % b
+		return result
+
+	def __del__( self ):
+		if not self.foundFirst:
+			raise ValueError, "Stateful mod never detected a non-zero value in the divisor"
+		
+def DatetimeMod( dt, period, start = datetime.datetime( 1970, 1, 1 ) ):
+	"""Find the time which is the specified date/time truncated to the time delta
+	relative to the start date/time."""
+	# calculate the difference between the specified time and the start date.
+	delta = dt - start
+	# now find the modulus (remainder) of the delta divided by the period.
+	sf = StatefulMod()
+	modParams = map( GetTimeDeltaParams, ( delta, period ) )
+	offset = datetime.timedelta( *map( sf, *modParams ) )
+	# the result is the original specified time minus the offset
+	result = dt - offset
+	return result
+
+def GetTimeDeltaParams( td ):
+	return td.days, td.seconds, td.microseconds
+
+def DatetimeRound( dt, period ):
+	"""Find the nearest even period for the specified date/time.
+	>>> DatetimeRound( datetime.datetime( 2004, 11, 13, 8, 11, 13 ), datetime.timedelta( hours = 1 ) )
+	datetime.datetime( 2004, 11, 13, 8, 0, 0 )
+	"""
+	
