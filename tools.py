@@ -5,9 +5,10 @@ tools.py:
   small functions or classes that don't have a home elsewhere
 """
 
-__version__ = '$Revision: 20 $'[11:-2]
-__author__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Modtime: 04-04-02 18:07 $'[10:-2]
+__author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
+__version__ = '$Revision: 21 $'[11:-2]
+__vssauthor__ = '$Author: Jaraco $'[9:-2]
+__date__ = '$Modtime: 04-04-16 11:35 $'[10:-2]
 
 import string, urllib, os
 import logging
