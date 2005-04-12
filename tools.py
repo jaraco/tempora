@@ -82,6 +82,15 @@ class HTTPQuery( dict ):
 	__QueryFromURL__ = staticmethod( __QueryFromURL__ )
 
 def chunkGenerator( seq, size ):
+	"""Take a sequence and break it up into chunks of the specified size.
+The last chunk may be smaller than size.
+>>> tuple( chunkGenerator( 'foobarbaz', 3 ) )
+('foo', 'bar', 'baz')
+>>> tuple( chunkGenerator( [], 42 ) )
+()
+>>> tuple( chunkGenerator( range(10), 3 ) )
+([0, 1, 2], [3, 4, 5], [6, 7, 8], [9])
+"""
 	for i in range( 0, len(seq), size ):
 		yield seq[i:i+size]
 
