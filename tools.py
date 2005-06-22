@@ -6,9 +6,9 @@ tools.py:
 """
 
 __author__ = 'Jason R. Coombs <jaraco@sandia.gov>'
-__version__ = '$Rev: 36 $'[6:-2]
-__svnauthor__ = '$Author: Jaraco $'[9:-2]
-__date__ = '$Date: 27-09-04 11:24 $'[7:-2]
+__version__ = '$Rev$'[6:-2]
+__svnauthor__ = '$Author$'[9:-2]
+__date__ = '$Date$'[7:-2]
 
 import string, urllib, os
 import logging
