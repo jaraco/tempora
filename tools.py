@@ -411,6 +411,8 @@ class odict( dict ):
 		try:
 			if isinstance( args[0], odict ):
 				self._keys = args[0]._keys[:]
+			elif isinstance( args[0], tuple ):
+				self._keys = zip( *args[0] )[0]
 			else:
 				self._keys = dict.keys( self )
 		except IndexError:
