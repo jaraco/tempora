@@ -31,11 +31,13 @@ def CoerceType( value ):
 
 	return result
 
-# Make a list into rows of nColumns columns.
-# So if list = [1,2,3,4,5] and nColumns = 2, result is
-#  [[1,3],[2,4],[5,None]].  If nColumns = 3, result is
-#  [[1,3,5],[2,4,None]].
 def makeRows( list, nColumns ):
+	"""Make a list into rows of nColumns columns
+	>>> makeRows( [1,2,3,4,5], 2 )
+	[[1,3],[2,4],[5,None]]
+	>>> makeRows( [1,2,3,4,5], 3 )
+	[[1,3,5],[2,4,None]]
+	"""
 	# calculate the minimum number of rows necessary to fit the list in n Columns
 	nRows = len(list) / nColumns
 	if len(list) % nColumns:
@@ -486,11 +488,7 @@ class ciString( str ):
 		return hash( self.lower() )
 	# cache lower since it's likely to be called frequently.
 	def lower( self ):
-		try:
-			return self._lower
-		except AttributeError:
-			self._lower = str.lower( self )
-			return self._lower
+		return self.__dict__.setdefault( '_lower', str.lower( self ) )
 
 class ciDict( dict ):
 	"""A case-insensitive dictionary (keys are compared as insensitive
