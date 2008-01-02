@@ -244,15 +244,17 @@ def getPeriodSeconds( period ):
 	"""
 	return the number of seconds in the specified period
 	"""
-	try:
-		if isinstance( period, basestring ):
+	if isinstance( period, basestring ):
+		try:
 			result = eval( 'secondsPer%s' % string.capwords( period ) )
-		elif isinstance( period, ( int, long ) ):
-			result = period
-		else:
-			raise TypeError, 'period must be a string or integer'
-	except NameError:
-		raise ValueError, "period not in ( minute, hour, day, year )"
+		except NameError:
+			raise ValueError, "period not in ( minute, hour, day, year )"
+	elif isinstance( period, ( int, long ) ):
+		result = period
+	elif isinstance( period, datetime.timedelta ):
+		result = period.days * getPeriodSeconds('day') + period.seconds
+	else:
+		raise TypeError, 'period must be a string or integer'
 	return result
 
 def getDateFormatString( period ):
