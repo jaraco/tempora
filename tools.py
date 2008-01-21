@@ -202,24 +202,6 @@ class DMS( object ):
 			raise ValueError, 'DMS not given in valid range (%(deg)f°%(min)f\'%(sec)f").' % d
 		return result
 
-# This function takes a Julian day and infers a year by choosing the
-#  nearest year to that date.
-def GetNearestYearForDay( day ):
-	now = time.gmtime()
-	result = now.tm_year
-	# if the day is far greater than today, it must be from last year
-	if day - now.tm_yday > 365/2:
-		result -= 1
-	# if the day is far less than today, it must be for next year.
-	if now.tm_yday - day > 365/2:
-		result += 1
-	return result
-
-def GregorianDate( year, julianDay ):
-	result = datetime.date( year, 1, 1 )
-	result += datetime.timedelta( days = julianDay - 1 )
-	return result
-
 def ReplaceList( object, substitutions ):
 	try:
 		for old, new in substitutions:
@@ -234,54 +216,7 @@ def ReverseLists( lists ):
 	tLists.reverse()
 	return zip( *tLists )
 
-# calculate the seconds for each period
-secondsPerMinute = 60
-secondsPerHour = 60 * secondsPerMinute
-secondsPerDay = 24 * secondsPerHour
-secondsPerYear = 365 * secondsPerDay
-
-def getPeriodSeconds( period ):
-	"""
-	return the number of seconds in the specified period
-	"""
-	if isinstance( period, basestring ):
-		try:
-			result = eval( 'secondsPer%s' % string.capwords( period ) )
-		except NameError:
-			raise ValueError, "period not in ( minute, hour, day, year )"
-	elif isinstance( period, ( int, long ) ):
-		result = period
-	elif isinstance( period, datetime.timedelta ):
-		result = period.days * getPeriodSeconds('day') + period.seconds
-	else:
-		raise TypeError, 'period must be a string or integer'
-	return result
-
-def getDateFormatString( period ):
-	"""
-	for a given period (e.g. 'month', 'day', or some numeric interval
-	such as 3600 (in secs)), return the format string that can be
-	used with strftime to format that time to specify the times
-	across that interval, but no more detailed.
-	so,
-	getDateFormatString( 'month' ) == '%Y-%m'
-	getDateFormatString( 3600 ) == getDateFormatString( 'hour' ) == '%Y-%m-%d %H'
-	getDateFormatString( None ) -> raise TypeError
-	getDateFormatString( 'garbage' ) -> raise ValueError
-	"""
-	# handle the special case of 'month' which doesn't have
-	#  a static interval in seconds
-	if isinstance( period, basestring ) and string.lower( period ) == 'month':
-		result = '%Y-%m'
-	else:
-		filePeriodSecs = getPeriodSeconds( period )
-		formatPieces = ( '%Y', '-%m-%d', ' %H', '-%M', '-%S' )
-		intervals = ( secondsPerYear, secondsPerDay, secondsPerHour, secondsPerMinute, 1 )
-		mods = map( lambda interval: filePeriodSecs % interval, intervals )
-		formatPieces = formatPieces[ : mods.index( 0 ) + 1 ]
-		result = string.join( formatPieces, '' )
-	return result
-
+import datetools
 import logging, time
 class TimestampFileHandler( logging.StreamHandler ):
 	"""
@@ -302,8 +237,8 @@ class TimestampFileHandler( logging.StreamHandler ):
 		"""
 		self._period = period
 		if period:
-			self._periodSeconds = getPeriodSeconds( self._period )
-			self._dateFormat = getDateFormatString( self._periodSeconds )
+			self._periodSeconds = datetools.getPeriodSeconds( self._period )
+			self._dateFormat = datetools.getDateFormatString( self._periodSeconds )
 		else:
 			self._periodSeconds = 0
 			self._dateFormat = ''
