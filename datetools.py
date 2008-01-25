@@ -217,7 +217,7 @@ def getPeriodSeconds( period ):
 	"""
 	if isinstance( period, basestring ):
 		try:
-			result = eval( 'secondsPer%s' % string.capwords( period ) )
+			result = eval( 'seconds_per_%s' % period.lower() )
 		except NameError:
 			raise ValueError, "period not in ( minute, hour, day, year )"
 	elif isinstance( period, ( int, long ) ):
