@@ -212,46 +212,52 @@ def GregorianDate( year, julianDay ):
 	result += datetime.timedelta( days = julianDay - 1 )
 	return result
 
-def getPeriodSeconds( period ):
+def get_period_seconds(period):
 	"""
 	return the number of seconds in the specified period
 	"""
-	if isinstance( period, basestring ):
+	if isinstance(period, basestring):
 		try:
-			result = eval( 'seconds_per_%s' % period.lower() )
+			result = eval('seconds_per_%s' % period.lower())
 		except NameError:
-			raise ValueError, "period not in ( minute, hour, day, year )"
-	elif isinstance( period, ( int, long ) ):
+			raise ValueError, "period not in (minute, hour, day, year)"
+	elif isinstance(period, (int, long)):
 		result = period
-	elif isinstance( period, datetime.timedelta ):
+	elif isinstance(period, datetime.timedelta):
 		result = period.days * getPeriodSeconds('day') + period.seconds
 	else:
 		raise TypeError, 'period must be a string or integer'
 	return result
 
-def getDateFormatString( period ):
+def get_date_format_string( period ):
 	"""
 	for a given period (e.g. 'month', 'day', or some numeric interval
 	such as 3600 (in secs)), return the format string that can be
 	used with strftime to format that time to specify the times
 	across that interval, but no more detailed.
 	so,
-	getDateFormatString( 'month' ) == '%Y-%m'
-	getDateFormatString( 3600 ) == getDateFormatString( 'hour' ) == '%Y-%m-%d %H'
-	getDateFormatString( None ) -> raise TypeError
-	getDateFormatString( 'garbage' ) -> raise ValueError
+	get_date_format_string('month') == '%Y-%m'
+	get_date_format_string(3600) == get_date_format_string('hour') == '%Y-%m-%d %H'
+	get_date_format_string(None) -> raise TypeError
+	get_date_format_string('garbage') -> raise ValueError
 	"""
 	# handle the special case of 'month' which doesn't have
 	#  a static interval in seconds
-	if isinstance( period, basestring ) and string.lower( period ) == 'month':
+	if isinstance(period, basestring) and string.lower(period) == 'month':
 		result = '%Y-%m'
 	else:
-		filePeriodSecs = getPeriodSeconds( period )
-		formatPieces = ( '%Y', '-%m-%d', ' %H', '-%M', '-%S' )
-		intervals = ( secondsPerYear, secondsPerDay, secondsPerHour, secondsPerMinute, 1 )
-		mods = map( lambda interval: filePeriodSecs % interval, intervals )
-		formatPieces = formatPieces[ : mods.index( 0 ) + 1 ]
-		result = string.join( formatPieces, '' )
+		file_period_secs = get_period_seconds(period)
+		format_pieces = ('%Y', '-%m-%d', ' %H', '-%M', '-%S')
+		intervals = (
+			seconds_per_year,
+			seconds_per_day,
+			seconds_per_hour,
+			seconds_per_minute,
+			1, # seconds_per_second
+			)
+		mods = map(lambda interval: file_period_secs % interval, intervals)
+		format_pieces = format_pieces[ : mods.index( 0 ) + 1 ]
+		result = string.join(format_pieces, '')
 	return result
 
 def divide_timedelta_float( td, divisor ):
@@ -259,3 +265,7 @@ def divide_timedelta_float( td, divisor ):
 	dsm = [ getattr( td, attr ) for attr in ( 'days', 'seconds', 'microseconds' ) ]
 	dsm = map( lambda elem: elem/divisor, dsm )
 	return timedelta( *dsm )
+
+# for backward compatibility
+getPeriodSeconds = get_period_seconds
+getDateFormatString = get_date_format_string
