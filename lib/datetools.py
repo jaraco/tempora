@@ -257,7 +257,7 @@ def get_date_format_string( period ):
 			)
 		mods = map(lambda interval: file_period_secs % interval, intervals)
 		format_pieces = format_pieces[ : mods.index( 0 ) + 1 ]
-		result = string.join(format_pieces, '')
+		result = ''.join(format_pieces)
 	return result
 
 def divide_timedelta_float( td, divisor ):
