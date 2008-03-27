@@ -207,9 +207,15 @@ def GetNearestYearForDay( day ):
 		result += 1
 	return result
 
-def GregorianDate( year, julianDay ):
-	result = datetime.date( year, 1, 1 )
-	result += datetime.timedelta( days = julianDay - 1 )
+def gregorian_date(year, julian_day):
+	"""
+	Gregorian Date is defined as a year and a julian day (1-based
+	index into the days of the year).
+	>>> gregorian_date(2007, 15)
+	datetime.date(2007, 1, 15)
+	"""
+	result = datetime.date(year, 1, 1)
+	result += datetime.timedelta(days = julian_day - 1)
 	return result
 
 def get_period_seconds(period):
@@ -269,3 +275,4 @@ def divide_timedelta_float( td, divisor ):
 # for backward compatibility
 getPeriodSeconds = get_period_seconds
 getDateFormatString = get_date_format_string
+GregorianDate = gregorian_date
