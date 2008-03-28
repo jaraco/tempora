@@ -5,7 +5,8 @@
 
 "Date time utilities not available in stock python"
 
-import datetime, time
+import datetime
+import time
 
 #TODO: replace this with dateutil.parser.parse()
 class Parser( object ):
@@ -68,6 +69,8 @@ hours_per_day = 24
 seconds_per_hour = seconds_per_minute * minutes_per_hour
 seconds_per_day = seconds_per_hour * hours_per_day
 days_per_year = float( seconds_per_year ) / seconds_per_day
+six_months = datetime.timedelta(days=days_per_year/2)
+thirty_days = datetime.timedelta(days=30)
 
 def strftime( fmt, t ):
 	"""A class to replace the strftime in datetime package or time module.
