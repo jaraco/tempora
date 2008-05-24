@@ -233,7 +233,7 @@ def get_period_seconds(period):
 	elif isinstance(period, (int, long)):
 		result = period
 	elif isinstance(period, datetime.timedelta):
-		result = period.days * getPeriodSeconds('day') + period.seconds
+		result = period.days * get_period_seconds('day') + period.seconds
 	else:
 		raise TypeError, 'period must be a string or integer'
 	return result
