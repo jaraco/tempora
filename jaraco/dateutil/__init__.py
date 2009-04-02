@@ -12,19 +12,19 @@ import time
 class Parser(object):
 	"""Datetime parser: parses a date-time string using multiple possible formats.
 	>>> p = Parser(('%H%M', '%H:%M'))
-	>>> p.parse('1319')
+	>>> tuple(p.parse('1319'))
 	(1900, 1, 1, 13, 19, 0, 0, 1, -1)
 	>>> dateParser = Parser(('%m/%d/%Y', '%Y-%m-%d', '%d-%b-%Y'))
-	>>> dateParser.parse('2003-12-20')
+	>>> tuple(dateParser.parse('2003-12-20'))
 	(2003, 12, 20, 0, 0, 0, 5, 354, -1)
-	>>> dateParser.parse('16-Dec-1994')
+	>>> tuple(dateParser.parse('16-Dec-1994'))
 	(1994, 12, 16, 0, 0, 0, 4, 350, -1)
-	>>> dateParser.parse('5/19/2003')
+	>>> tuple(dateParser.parse('5/19/2003'))
 	(2003, 5, 19, 0, 0, 0, 0, 139, -1)
 	>>> dtParser = Parser(('%Y-%m-%d %H:%M:%S', '%a %b %d %H:%M:%S %Y'))
-	>>> dtParser.parse('2003-12-20 19:13:26')
+	>>> tuple(dtParser.parse('2003-12-20 19:13:26'))
 	(2003, 12, 20, 19, 13, 26, 5, 354, -1)
-	>>> dtParser.parse('Tue Jan 20 16:19:33 2004')
+	>>> tuple(dtParser.parse('Tue Jan 20 16:19:33 2004'))
 	(2004, 1, 20, 16, 19, 33, 1, 20, -1)
 
 	Be forewarned:
