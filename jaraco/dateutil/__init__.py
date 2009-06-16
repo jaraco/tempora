@@ -45,9 +45,9 @@ class Parser(object):
 		results = filter(None, map(self._parse, self.formats))
 		del self.target
 		if not results:
-			raise ValueError, "No format strings matched the target %s." % target
+			raise ValueError("No format strings matched the target %s." % target)
 		if not len(results) == 1:
-			raise ValueError, "More than one format string matched target %s." % target
+			raise ValueError("More than one format string matched target %s." % target)
 		return results[0]
 
 	def _parse(self, format):
@@ -118,7 +118,7 @@ def ConstructDatetime(*args, **kargs):
 		except KeyError:
 			pass
 		if kargs:
-			raise TypeError, "%s is an invalid keyword argument for this function." % kargs.keys()[0]
+			raise TypeError("%s is an invalid keyword argument for this function." % kargs.keys()[0])
 	else:
 		result = datetime.datetime(*args, **kargs)
 	return result
@@ -127,7 +127,7 @@ def __GetDTConstructor__(moduleName, name):
 	try:
 		return eval('__dt_from_%(moduleName)s_%(name)s__' % vars())
 	except NameError:
-		raise TypeError, "No way to construct datetime.datetime from %s.%s" % (moduleName, name)
+		raise TypeError("No way to construct datetime.datetime from %s.%s" % (moduleName, name))
 
 def __dt_from_datetime_datetime__(source):
 	dtattrs = ('year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo')
@@ -229,13 +229,13 @@ def get_period_seconds(period):
 		try:
 			result = eval('seconds_per_%s' % period.lower())
 		except NameError:
-			raise ValueError, "period not in (minute, hour, day, year)"
+			raise ValueError("period not in (minute, hour, day, year)")
 	elif isinstance(period, (int, long)):
 		result = period
 	elif isinstance(period, datetime.timedelta):
 		result = period.days * get_period_seconds('day') + period.seconds
 	else:
-		raise TypeError, 'period must be a string or integer'
+		raise TypeError('period must be a string or integer')
 	return result
 
 def get_date_format_string(period):
