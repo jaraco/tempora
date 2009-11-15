@@ -3,6 +3,8 @@
 
 # $Id$
 
+from __future__ import division
+
 "Date time utilities not available in stock python"
 
 import datetime
@@ -68,7 +70,7 @@ minutes_per_hour = 60
 hours_per_day = 24
 seconds_per_hour = seconds_per_minute * minutes_per_hour
 seconds_per_day = seconds_per_hour * hours_per_day
-days_per_year = float(seconds_per_year) / seconds_per_day
+days_per_year = seconds_per_year / seconds_per_day
 six_months = datetime.timedelta(days=days_per_year/2)
 thirty_days = datetime.timedelta(days=30)
 
@@ -90,7 +92,7 @@ def strftime(fmt, t):
 	subs = (
 		('%Y', '%04d' % year),
 		('%y', '%02d' % (year % 100)),
-		('%s', '%03d' % (t.microsecond / 1000)),
+		('%s', '%03d' % (t.microsecond // 1000)),
 		('%u', '%03d' % (t.microsecond % 1000))
 		)
 	doSub = lambda s, sub: s.replace(*sub)
@@ -193,7 +195,7 @@ def DatetimeRound(dt, period, start = None):
 	datetime.datetime(2004, 11, 13, 9, 0)
 	"""
 	result = DatetimeMod(dt, period, start)
-	if abs(dt - result) >= period / 2:
+	if abs(dt - result) >= period // 2:
 		result += period
 	return result
 
@@ -203,10 +205,10 @@ def GetNearestYearForDay(day):
 	now = time.gmtime()
 	result = now.tm_year
 	# if the day is far greater than today, it must be from last year
-	if day - now.tm_yday > 365/2:
+	if day - now.tm_yday > 365//2:
 		result -= 1
 	# if the day is far less than today, it must be for next year.
-	if now.tm_yday - day > 365/2:
+	if now.tm_yday - day > 365//2:
 		result += 1
 	return result
 
@@ -270,6 +272,11 @@ def get_date_format_string(period):
 	return result
 
 def divide_timedelta_float(td, divisor):
+	"""
+	Divide a timedelta by a float value
+	>>> divide_timedelta_float(datetime.timedelta(days=1), 2)
+	datetime.timedelta(0, 43200)
+	"""
 	# td is comprised of days, seconds, microseconds
 	dsm = [getattr(td, attr) for attr in ('days', 'seconds', 'microseconds')]
 	dsm = map(lambda elem: elem/divisor, dsm)
