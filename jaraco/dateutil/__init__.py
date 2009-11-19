@@ -44,7 +44,7 @@ class Parser(object):
 
 	def parse(self, target):
 		self.target = target
-		results = filter(None, map(self._parse, self.formats))
+		results = tuple(filter(None, map(self._parse, self.formats)))
 		del self.target
 		if not results:
 			raise ValueError("No format strings matched the target %s." % target)
@@ -280,7 +280,7 @@ def divide_timedelta_float(td, divisor):
 	# td is comprised of days, seconds, microseconds
 	dsm = [getattr(td, attr) for attr in ('days', 'seconds', 'microseconds')]
 	dsm = map(lambda elem: elem/divisor, dsm)
-	return timedelta(*dsm)
+	return datetime.timedelta(*dsm)
 
 # for backward compatibility
 getPeriodSeconds = get_period_seconds
