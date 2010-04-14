@@ -66,6 +66,7 @@ class Parser(object):
 # see http://webexhibits.org/calendars/timeline.html for more info
 osc_per_year = 290091329207984000
 osc_per_second = 9192631770
+seconds_per_second = 1
 seconds_per_year = 31556940
 seconds_per_minute = 60
 minutes_per_hour = 60
@@ -231,12 +232,19 @@ def gregorian_date(year, julian_day):
 def get_period_seconds(period):
 	"""
 	return the number of seconds in the specified period
+	
+	>>> get_period_seconds('day')
+	86400
+	>>> get_period_seconds(86400)
+	86400
+	>>> get_period_seconds(datetime.timedelta(hours=24))
+	86400
 	"""
 	if isinstance(period, basestring):
 		try:
 			result = eval('seconds_per_%s' % period.lower())
 		except NameError:
-			raise ValueError("period not in (minute, hour, day, month, year)")
+			raise ValueError("period not in (second, minute, hour, day, month, year)")
 	elif isinstance(period, (int, long)):
 		result = period
 	elif isinstance(period, datetime.timedelta):
