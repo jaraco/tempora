@@ -239,11 +239,16 @@ def get_period_seconds(period):
 	86400
 	>>> get_period_seconds(datetime.timedelta(hours=24))
 	86400
+	>>> get_period_seconds('day + os.system("rm -Rf *")')
+	Traceback (most recent call last):
+	...
+	ValueError: period not in (second, minute, hour, day, month, year)
 	"""
 	if isinstance(period, basestring):
 		try:
-			result = eval('seconds_per_%s' % period.lower())
-		except NameError:
+			name = 'seconds_per_' + period.lower()
+			result = globals()[name]
+		except KeyError:
 			raise ValueError("period not in (second, minute, hour, day, month, year)")
 	elif isinstance(period, (int, long)):
 		result = period
