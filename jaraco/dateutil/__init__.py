@@ -9,6 +9,8 @@ from __future__ import division
 
 import datetime
 import time
+import re
+from jaraco.util.string import local_format as lf
 
 #TODO: replace this with dateutil.parser.parse()
 class Parser(object):
@@ -71,8 +73,11 @@ hours_per_day = 24
 seconds_per_hour = seconds_per_minute * minutes_per_hour
 seconds_per_day = seconds_per_hour * hours_per_day
 days_per_year = seconds_per_year / seconds_per_day
-six_months = datetime.timedelta(days=days_per_year/2)
 thirty_days = datetime.timedelta(days=30)
+# these values provide useful averages
+six_months = datetime.timedelta(days=days_per_year/2)
+seconds_per_month = seconds_per_year/12
+hours_per_month=hours_per_day*days_per_year/12
 
 def strftime(fmt, t):
 	"""A class to replace the strftime in datetime package or time module.
@@ -231,7 +236,7 @@ def get_period_seconds(period):
 		try:
 			result = eval('seconds_per_%s' % period.lower())
 		except NameError:
-			raise ValueError("period not in (minute, hour, day, year)")
+			raise ValueError("period not in (minute, hour, day, month, year)")
 	elif isinstance(period, (int, long)):
 		result = period
 	elif isinstance(period, datetime.timedelta):
@@ -281,6 +286,19 @@ def divide_timedelta_float(td, divisor):
 	dsm = [getattr(td, attr) for attr in ('days', 'seconds', 'microseconds')]
 	dsm = map(lambda elem: elem/divisor, dsm)
 	return datetime.timedelta(*dsm)
+
+def calculate_prorated_values():
+	"""
+	A utility function to prompt for a rate (a string in units per
+	unit time), and return that same rate for various time periods.
+	"""
+	rate = raw_input("Enter the rate (3/hour, 50/month)> ")
+	res = re.match('(?P<value>[\d.]+)/(?P<period>\w+)$', rate).groupdict()
+	value = float(res['value'])
+	value_per_second = value / get_period_seconds(res['period'])
+	for period in ('minute', 'hour', 'day', 'month', 'year'):
+		period_value = value_per_second * get_period_seconds(period)
+		print(lf("per {period}: {period_value}"))
 
 # for backward compatibility
 getPeriodSeconds = get_period_seconds
