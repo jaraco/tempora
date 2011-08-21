@@ -1,18 +1,14 @@
-#! python
 # -*- coding: UTF-8 -*-
 
-# $Id$
+"Date time utilities not available in stock python"
 
 from __future__ import division
-
-"Date time utilities not available in stock python"
 
 import datetime
 import time
 import re
 from jaraco.util.string import local_format as lf
 
-#TODO: replace this with dateutil.parser.parse()
 class Parser(object):
 	"""Datetime parser: parses a date-time string using multiple possible formats.
 	>>> p = Parser(('%H%M', '%H:%M'))
@@ -31,15 +27,17 @@ class Parser(object):
 	>>> tuple(dtParser.parse('Tue Jan 20 16:19:33 2004'))
 	(2004, 1, 20, 16, 19, 33, 1, 20, -1)
 
-	Be forewarned:
+	Be forewarned, a ValueError will be raised if more than one format
+	matches:
 	>>> Parser(('%H%M', '%H%M%S')).parse('732')
 	Traceback (most recent call last):
 		...
 	ValueError: More than one format string matched target 732.
 	"""
 
-	# default to some common formats
 	formats = ('%m/%d/%Y', '%m/%d/%y', '%Y-%m-%d', '%d-%b-%Y', '%d-%b-%y')
+	"some common default formats"
+
 	def __init__(self, formats = None):
 		if formats:
 			self.formats = formats
@@ -62,9 +60,11 @@ class Parser(object):
 		return result
 
 # some useful constants
-# mean vernal equinox year expressed in oscillations of atomic cesium at the year 2000
-# see http://webexhibits.org/calendars/timeline.html for more info
 osc_per_year = 290091329207984000
+"""
+mean vernal equinox year expressed in oscillations of atomic cesium at the
+year 2000 (see http://webexhibits.org/calendars/timeline.html for more info).
+"""
 osc_per_second = 9192631770
 seconds_per_second = 1
 seconds_per_year = 31556940
@@ -114,66 +114,86 @@ def strptime(s, fmt, tzinfo = None):
 	res = time.strptime(s, fmt)
 	return datetime.datetime(tzinfo = tzinfo, *res[:6])
 
-def ConstructDatetime(*args, **kargs):
-	"""Construct a datetime.datetime from a number of different time
-	types found in python and pythonwin"""
-	if len(args) == 1:
-		arg = args[0]
-		method = __GetDTConstructor__(type(arg).__module__, type(arg).__name__)
-		result = method(arg)
+class DatetimeConstructor(object):
+	"""
+	>>> cd = DatetimeConstructor.construct_datetime
+	>>> cd(datetime.datetime(2011,1,1))
+	datetime.datetime(2011, 1, 1, 0, 0)
+	"""
+	@classmethod
+	def construct_datetime(cls, *args, **kwargs):
+		"""Construct a datetime.datetime from a number of different time
+		types found in python and pythonwin"""
+		if len(args) == 1:
+			arg = args[0]
+			method = cls.__get_dt_constructor(type(arg).__module__,
+				type(arg).__name__)
+			result = method(arg)
+			try:
+				result = result.replace(tzinfo = kwargs.pop('tzinfo'))
+			except KeyError:
+				pass
+			if kwargs:
+				first_key = kwargs.keys()[0]
+				raise TypeError(lf("{first_key} is an invalid keyword "
+					"argument for this function."))
+		else:
+			result = datetime.datetime(*args, **kargs)
+		return result
+
+	@classmethod
+	def __get_dt_constructor(cls, moduleName, name):
 		try:
-			result = result.replace(tzinfo = kargs.pop('tzinfo'))
-		except KeyError:
-			pass
-		if kargs:
-			raise TypeError("%s is an invalid keyword argument for this function." % kargs.keys()[0])
-	else:
-		result = datetime.datetime(*args, **kargs)
-	return result
+			method_name = lf('__dt_from_{moduleName}_{name}__')
+			return getattr(cls, method_name)
+		except AttributeError:
+			raise TypeError(lf("No way to construct datetime.datetime from "
+				"{moduleName}.{name}"))
 
-def __GetDTConstructor__(moduleName, name):
-	try:
-		return eval('__dt_from_%(moduleName)s_%(name)s__' % vars())
-	except NameError:
-		raise TypeError("No way to construct datetime.datetime from %s.%s" % (moduleName, name))
+	@staticmethod
+	def __dt_from_datetime_datetime__(source):
+		dtattrs = ('year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo')
+		attrs = map(lambda a: getattr(source, a), dtattrs)
+		return datetime.datetime(*attrs)
 
-def __dt_from_datetime_datetime__(source):
-	dtattrs = ('year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo')
-	attrs = map(lambda a: getattr(source, a), dtattrs)
-	return datetime.datetime(*attrs)
+	@staticmethod
+	def __dt_from___builtin___time__(pyt):
+		"Construct a datetime.datetime from a pythonwin time"
+		fmtString = '%Y-%m-%d %H:%M:%S'
+		result = strptime(pyt.Format(fmtString), fmtString)
+		# get milliseconds and microseconds.  The only way to do this is
+		#  to use the __float__ attribute of the time, which is in days.
+		microseconds_per_day = seconds_per_day * 1000000
+		microseconds = float(pyt) * microseconds_per_day
+		microsecond = int(microseconds % 1000000)
+		result = result.replace(microsecond = microsecond)
+		return result
 
-def __dt_from___builtin___time__(pyt):
-	"Construct a datetime.datetime from a pythonwin time"
-	fmtString = '%Y-%m-%d %H:%M:%S'
-	result = strptime(pyt.Format(fmtString), fmtString)
-	# get milliseconds and microseconds.  The only way to do this is
-	#  to use the __float__ attribute of the time, which is in days.
-	microseconds_per_day = seconds_per_day * 1000000
-	microseconds = float(pyt) * microseconds_per_day
-	microsecond = int(microseconds % 1000000)
-	result = result.replace(microsecond = microsecond)
-	return result
+	@staticmethod
+	def __dt_from_timestamp__(timestamp):
+		return datetime.datetime.utcfromtimestamp(timestamp)
+	__dt_from___builtin___float__ = __dt_from_timestamp__
+	__dt_from___builtin___long__ = __dt_from_timestamp__
+	__dt_from___builtin___int__ = __dt_from_timestamp__
 
-def __dt_from_timestamp__(timestamp):
-	return datetime.datetime.utcfromtimestamp(timestamp)
-__dt_from___builtin___float__ = __dt_from_timestamp__
-__dt_from___builtin___long__ = __dt_from_timestamp__
-__dt_from___builtin___int__ = __dt_from_timestamp__
+	@staticmethod
+	def __dt_from_time_struct_time__(s):
+		return datetime.datetime(*s[:6])
 
-def __dt_from_time_struct_time__(s):
-	return datetime.datetime(*s[:6])
-
-def DatetimeMod(dt, period, start = None):
-	"""Find the time which is the specified date/time truncated to the time delta
+def datetime_mod(dt, period, start = None):
+	"""
+	Find the time which is the specified date/time truncated to the time delta
 	relative to the start date/time.
-	By default, the start time is midnight of the same day as the specified date/time.
-	>>> DatetimeMod(datetime.datetime(2004, 1, 2, 3), datetime.timedelta(days = 1.5), start = datetime.datetime(2004, 1, 1))
+	By default, the start time is midnight of the same day as the specified
+	date/time.
+
+	>>> datetime_mod(datetime.datetime(2004, 1, 2, 3), datetime.timedelta(days = 1.5), start = datetime.datetime(2004, 1, 1))
 	datetime.datetime(2004, 1, 1, 0, 0)
-	>>> DatetimeMod(datetime.datetime(2004, 1, 2, 13), datetime.timedelta(days = 1.5), start = datetime.datetime(2004, 1, 1))
+	>>> datetime_mod(datetime.datetime(2004, 1, 2, 13), datetime.timedelta(days = 1.5), start = datetime.datetime(2004, 1, 1))
 	datetime.datetime(2004, 1, 2, 12, 0)
-	>>> DatetimeMod(datetime.datetime(2004, 1, 2, 13), datetime.timedelta(days = 7), start = datetime.datetime(2004, 1, 1))
+	>>> datetime_mod(datetime.datetime(2004, 1, 2, 13), datetime.timedelta(days = 7), start = datetime.datetime(2004, 1, 1))
 	datetime.datetime(2004, 1, 1, 0, 0)
-	>>> DatetimeMod(datetime.datetime(2004, 1, 10, 13), datetime.timedelta(days = 7), start = datetime.datetime(2004, 1, 1))
+	>>> datetime_mod(datetime.datetime(2004, 1, 10, 13), datetime.timedelta(days = 7), start = datetime.datetime(2004, 1, 1))
 	datetime.datetime(2004, 1, 8, 0, 0)
 """
 	if start is None:
@@ -182,32 +202,34 @@ def DatetimeMod(dt, period, start = None):
 	# calculate the difference between the specified time and the start date.
 	delta = dt - start
 	# now aggregate the delta and the period into microseconds
-	# I use microseconds because that's the highest precision of these time pieces.  Also,
+	# I use microseconds because that's the highest precision of these time pieces.	 Also,
 	#  using microseconds ensures perfect precision (no floating point errors).
-	GetTimeDeltaMicroseconds = lambda td: (td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
-	delta, period = map(GetTimeDeltaMicroseconds , (delta, period))
+	get_time_delta_microseconds = lambda td: (td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
+	delta, period = map(get_time_delta_microseconds, (delta, period))
 	offset = datetime.timedelta(microseconds = delta % period)
 	# the result is the original specified time minus the offset
 	result = dt - offset
 	return result
 
-def DatetimeRound(dt, period, start = None):
-	"""Find the nearest even period for the specified date/time.
-	>>> DatetimeRound(datetime.datetime(2004, 11, 13, 8, 11, 13), datetime.timedelta(hours = 1))
+def datetime_round(dt, period, start = None):
+	"""
+	Find the nearest even period for the specified date/time.
+	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 11, 13), datetime.timedelta(hours = 1))
 	datetime.datetime(2004, 11, 13, 8, 0)
-	>>> DatetimeRound(datetime.datetime(2004, 11, 13, 8, 31, 13), datetime.timedelta(hours = 1))
+	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 31, 13), datetime.timedelta(hours = 1))
 	datetime.datetime(2004, 11, 13, 9, 0)
-	>>> DatetimeRound(datetime.datetime(2004, 11, 13, 8, 30), datetime.timedelta(hours = 1))
+	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 30), datetime.timedelta(hours = 1))
 	datetime.datetime(2004, 11, 13, 9, 0)
 	"""
-	result = DatetimeMod(dt, period, start)
+	result = datetime_mod(dt, period, start)
 	if abs(dt - result) >= period // 2:
 		result += period
 	return result
 
-# This function takes a Julian day and infers a year by choosing the
-#  nearest year to that date.
-def GetNearestYearForDay(day):
+def get_nearest_year_for_day(day):
+	"""
+	Returns the nearest year to now inferred from a Julian date.
+	"""
 	now = time.gmtime()
 	result = now.tm_year
 	# if the day is far greater than today, it must be from last year
@@ -222,6 +244,7 @@ def gregorian_date(year, julian_day):
 	"""
 	Gregorian Date is defined as a year and a julian day (1-based
 	index into the days of the year).
+
 	>>> gregorian_date(2007, 15)
 	datetime.date(2007, 1, 15)
 	"""
@@ -232,7 +255,7 @@ def gregorian_date(year, julian_day):
 def get_period_seconds(period):
 	"""
 	return the number of seconds in the specified period
-	
+
 	>>> get_period_seconds('day')
 	86400
 	>>> get_period_seconds(86400)
@@ -260,34 +283,43 @@ def get_period_seconds(period):
 
 def get_date_format_string(period):
 	"""
-	for a given period (e.g. 'month', 'day', or some numeric interval
+	For a given period (e.g. 'month', 'day', or some numeric interval
 	such as 3600 (in secs)), return the format string that can be
 	used with strftime to format that time to specify the times
 	across that interval, but no more detailed.
-	so,
-	get_date_format_string('month') == '%Y-%m'
-	get_date_format_string(3600) == get_date_format_string('hour') == '%Y-%m-%d %H'
-	get_date_format_string(None) -> raise TypeError
-	get_date_format_string('garbage') -> raise ValueError
+	For example,
+
+	>>> get_date_format_string('month')
+	'%Y-%m'
+	>>> get_date_format_string(3600)
+	'%Y-%m-%d %H'
+	>>> get_date_format_string('hour')
+	'%Y-%m-%d %H'
+	>>> get_date_format_string(None)
+	Traceback (most recent call last):
+		...
+	TypeError: period must be a string or integer
+	>>> get_date_format_string('garbage')
+	Traceback (most recent call last):
+		...
+	ValueError: period not in (second, minute, hour, day, month, year)
 	"""
 	# handle the special case of 'month' which doesn't have
 	#  a static interval in seconds
-	if isinstance(period, basestring) and string.lower(period) == 'month':
-		result = '%Y-%m'
-	else:
-		file_period_secs = get_period_seconds(period)
-		format_pieces = ('%Y', '-%m-%d', ' %H', '-%M', '-%S')
-		intervals = (
-			seconds_per_year,
-			seconds_per_day,
-			seconds_per_hour,
-			seconds_per_minute,
-			1, # seconds_per_second
-			)
-		mods = map(lambda interval: file_period_secs % interval, intervals)
-		format_pieces = format_pieces[: mods.index(0) + 1]
-		result = ''.join(format_pieces)
-	return result
+	if isinstance(period, basestring) and period.lower() == 'month':
+		return '%Y-%m'
+	file_period_secs = get_period_seconds(period)
+	format_pieces = ('%Y', '-%m-%d', ' %H', '-%M', '-%S')
+	intervals = (
+		seconds_per_year,
+		seconds_per_day,
+		seconds_per_hour,
+		seconds_per_minute,
+		1, # seconds_per_second
+		)
+	mods = map(lambda interval: file_period_secs % interval, intervals)
+	format_pieces = format_pieces[: mods.index(0) + 1]
+	return ''.join(format_pieces)
 
 def divide_timedelta_float(td, divisor):
 	"""
@@ -312,8 +344,3 @@ def calculate_prorated_values():
 	for period in ('minute', 'hour', 'day', 'month', 'year'):
 		period_value = value_per_second * get_period_seconds(period)
 		print(lf("per {period}: {period_value}"))
-
-# for backward compatibility
-getPeriodSeconds = get_period_seconds
-getDateFormatString = get_date_format_string
-GregorianDate = gregorian_date
