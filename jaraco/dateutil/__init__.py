@@ -2,7 +2,7 @@
 
 "Date time utilities not available in stock python"
 
-from __future__ import division
+from __future__ import division, unicode_literals
 
 import datetime
 import time
@@ -290,11 +290,11 @@ def get_date_format_string(period):
 	For example,
 
 	>>> get_date_format_string('month')
-	'%Y-%m'
+	u'%Y-%m'
 	>>> get_date_format_string(3600)
-	'%Y-%m-%d %H'
+	u'%Y-%m-%d %H'
 	>>> get_date_format_string('hour')
-	'%Y-%m-%d %H'
+	u'%Y-%m-%d %H'
 	>>> get_date_format_string(None)
 	Traceback (most recent call last):
 		...
