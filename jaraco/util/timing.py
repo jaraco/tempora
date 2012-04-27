@@ -42,3 +42,9 @@ class Stopwatch(object):
 	def split(self):
 		local_duration = datetime.datetime.now() - self.start_time
 		return self.elapsed + local_duration
+
+	# context manager support
+	__enter__ = start
+
+	def __exit__(self, exc_type, exc_value, traceback):
+		self.stop()
