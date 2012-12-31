@@ -1,6 +1,7 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
 import datetime
+import functools
 
 class Stopwatch(object):
 	"""
@@ -48,3 +49,28 @@ class Stopwatch(object):
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.stop()
+
+class IntervalGovernor(object):
+	"""
+	Decorate a function to only allow it to be called once per
+	min_interval. Otherwise, it returns None.
+	"""
+	def __init__(self, min_interval):
+		if isinstance(min_interval, (int, long)):
+			min_interval = datetime.timedelta(seconds=min_interval)
+		self.min_interval = min_interval
+		self.last_call = None
+
+	def decorate(self, func):
+		@functools.wraps(func)
+		def wrapper(*args, **kwargs):
+			allow = (
+				not self.last_call
+				or self.last_call.split() > self.min_interval
+			)
+			if allow:
+				self.last_call = Stopwatch()
+				return func(*args, **kwargs)
+		return wrapper
+
+	__call__ = decorate
