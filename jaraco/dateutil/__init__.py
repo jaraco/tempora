@@ -10,7 +10,9 @@ import re
 from jaraco.util.string import local_format as lf
 
 class Parser(object):
-	"""Datetime parser: parses a date-time string using multiple possible formats.
+	"""
+	Datetime parser: parses a date-time string using multiple possible
+	formats.
 	>>> p = Parser(('%H%M', '%H:%M'))
 	>>> tuple(p.parse('1319'))
 	(1900, 1, 1, 13, 19, 0, 0, 1, -1)
@@ -47,9 +49,11 @@ class Parser(object):
 		results = tuple(filter(None, map(self._parse, self.formats)))
 		del self.target
 		if not results:
-			raise ValueError("No format strings matched the target %s." % target)
+			raise ValueError("No format strings matched the target %s."
+				% target)
 		if not len(results) == 1:
-			raise ValueError("More than one format string matched target %s." % target)
+			raise ValueError("More than one format string matched target %s."
+				% target)
 		return results[0]
 
 	def _parse(self, format):
@@ -107,10 +111,12 @@ def strftime(fmt, t):
 	return t.strftime(fmt)
 
 def strptime(s, fmt, tzinfo = None):
-	"""A function to replace strptime in the time module.  Should behave identically
-	to the strptime function except it returns a datetime.datetime object instead of
-	a time.struct_time object.
-	Also takes an optional tzinfo parameter which is a time zone info object."""
+	"""
+	A function to replace strptime in the time module.  Should behave
+	identically to the strptime function except it returns a datetime.datetime
+	object instead of a time.struct_time object.
+	Also takes an optional tzinfo parameter which is a time zone info object.
+	"""
 	res = time.strptime(s, fmt)
 	return datetime.datetime(tzinfo = tzinfo, *res[:6])
 
@@ -152,7 +158,8 @@ class DatetimeConstructor(object):
 
 	@staticmethod
 	def __dt_from_datetime_datetime__(source):
-		dtattrs = ('year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond', 'tzinfo')
+		dtattrs = ('year', 'month', 'day', 'hour', 'minute', 'second',
+			'microsecond', 'tzinfo')
 		attrs = map(lambda a: getattr(source, a), dtattrs)
 		return datetime.datetime(*attrs)
 
@@ -187,24 +194,35 @@ def datetime_mod(dt, period, start = None):
 	By default, the start time is midnight of the same day as the specified
 	date/time.
 
-	>>> datetime_mod(datetime.datetime(2004, 1, 2, 3), datetime.timedelta(days = 1.5), start = datetime.datetime(2004, 1, 1))
+	>>> datetime_mod(datetime.datetime(2004, 1, 2, 3),
+	...     datetime.timedelta(days = 1.5),
+	...     start = datetime.datetime(2004, 1, 1))
 	datetime.datetime(2004, 1, 1, 0, 0)
-	>>> datetime_mod(datetime.datetime(2004, 1, 2, 13), datetime.timedelta(days = 1.5), start = datetime.datetime(2004, 1, 1))
+	>>> datetime_mod(datetime.datetime(2004, 1, 2, 13),
+	...     datetime.timedelta(days = 1.5),
+	...     start = datetime.datetime(2004, 1, 1))
 	datetime.datetime(2004, 1, 2, 12, 0)
-	>>> datetime_mod(datetime.datetime(2004, 1, 2, 13), datetime.timedelta(days = 7), start = datetime.datetime(2004, 1, 1))
+	>>> datetime_mod(datetime.datetime(2004, 1, 2, 13),
+	...     datetime.timedelta(days = 7),
+	...     start = datetime.datetime(2004, 1, 1))
 	datetime.datetime(2004, 1, 1, 0, 0)
-	>>> datetime_mod(datetime.datetime(2004, 1, 10, 13), datetime.timedelta(days = 7), start = datetime.datetime(2004, 1, 1))
+	>>> datetime_mod(datetime.datetime(2004, 1, 10, 13),
+	...     datetime.timedelta(days = 7),
+	...     start = datetime.datetime(2004, 1, 1))
 	datetime.datetime(2004, 1, 8, 0, 0)
-"""
+	"""
 	if start is None:
 		# use midnight of the same day
 		start = datetime.datetime.combine(dt.date(), datetime.time())
 	# calculate the difference between the specified time and the start date.
 	delta = dt - start
 	# now aggregate the delta and the period into microseconds
-	# I use microseconds because that's the highest precision of these time pieces.	 Also,
-	#  using microseconds ensures perfect precision (no floating point errors).
-	get_time_delta_microseconds = lambda td: (td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
+	# Use microseconds because that's the highest precision of these time
+	# pieces.  Also, using microseconds ensures perfect precision (no floating
+	# point errors).
+	get_time_delta_microseconds = lambda td: (
+		(td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
+	)
 	delta, period = map(get_time_delta_microseconds, (delta, period))
 	offset = datetime.timedelta(microseconds = delta % period)
 	# the result is the original specified time minus the offset
@@ -214,11 +232,14 @@ def datetime_mod(dt, period, start = None):
 def datetime_round(dt, period, start = None):
 	"""
 	Find the nearest even period for the specified date/time.
-	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 11, 13), datetime.timedelta(hours = 1))
+	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 11, 13),
+	...     datetime.timedelta(hours = 1))
 	datetime.datetime(2004, 11, 13, 8, 0)
-	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 31, 13), datetime.timedelta(hours = 1))
+	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 31, 13),
+	...     datetime.timedelta(hours = 1))
 	datetime.datetime(2004, 11, 13, 9, 0)
-	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 30), datetime.timedelta(hours = 1))
+	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 30),
+	...     datetime.timedelta(hours = 1))
 	datetime.datetime(2004, 11, 13, 9, 0)
 	"""
 	result = datetime_mod(dt, period, start)
@@ -272,7 +293,8 @@ def get_period_seconds(period):
 			name = 'seconds_per_' + period.lower()
 			result = globals()[name]
 		except KeyError:
-			raise ValueError("period not in (second, minute, hour, day, month, year)")
+			raise ValueError("period not in (second, minute, hour, day, "
+				"month, year)")
 	elif isinstance(period, (int, long)):
 		result = period
 	elif isinstance(period, datetime.timedelta):
