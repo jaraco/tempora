@@ -138,7 +138,7 @@ class DatetimeConstructor(object):
 				raise TypeError(lf("{first_key} is an invalid keyword "
 					"argument for this function."))
 		else:
-			result = datetime.datetime(*args, **kargs)
+			result = datetime.datetime(*args, **kwargs)
 		return result
 
 	@classmethod
