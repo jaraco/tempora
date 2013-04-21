@@ -366,3 +366,29 @@ def calculate_prorated_values():
 	for period in ('minute', 'hour', 'day', 'month', 'year'):
 		period_value = value_per_second * get_period_seconds(period)
 		print(lf("per {period}: {period_value}"))
+
+def parse_timedelta(str):
+	"""
+	Take a string representing a span of time and parse it to a time delta.
+	Accepts any string of comma-separated numbers each with a unit indicator.
+
+	>>> parse_timedelta('1 day')
+	datetime.timedelta(1)
+
+	>>> parse_timedelta('1 day, 30 seconds')
+	datetime.timedelta(1, 30)
+
+	>>> parse_timedelta('47.32 days, 20 minutes, 15.4 milliseconds')
+	datetime.timedelta(47, 28848, 15400)
+	"""
+	deltas = (_parse_timedelta_part(part.strip()) for part in str.split(','))
+	return sum(deltas, datetime.timedelta())
+
+def _parse_timedelta_part(part):
+	match = re.match('(?P<value>[\d.]+) (?P<unit>\w+)', part)
+	if not match:
+		raise ValueError(lf("Unable to parse {part!r} as a time delta"))
+	unit = match.group('unit')
+	if not unit.endswith('s'):
+		unit += 's'
+	return datetime.timedelta(**{unit: float(match.group('value'))})
