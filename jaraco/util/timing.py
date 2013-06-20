@@ -2,6 +2,7 @@ from __future__ import unicode_literals, absolute_import
 
 import datetime
 import functools
+import numbers
 
 class Stopwatch(object):
 	"""
@@ -56,7 +57,7 @@ class IntervalGovernor(object):
 	min_interval. Otherwise, it returns None.
 	"""
 	def __init__(self, min_interval):
-		if isinstance(min_interval, (int, long)):
+		if isinstance(min_interval, numbers.Number):
 			min_interval = datetime.timedelta(seconds=min_interval)
 		self.min_interval = min_interval
 		self.last_call = None
