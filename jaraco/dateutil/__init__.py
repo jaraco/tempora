@@ -7,6 +7,10 @@ from __future__ import division, unicode_literals
 import datetime
 import time
 import re
+import numbers
+
+from jaraco.util import six
+
 from jaraco.util.string import local_format as lf
 
 class Parser(object):
@@ -288,14 +292,14 @@ def get_period_seconds(period):
 	...
 	ValueError: period not in (second, minute, hour, day, month, year)
 	"""
-	if isinstance(period, basestring):
+	if isinstance(period, six.string_types):
 		try:
 			name = 'seconds_per_' + period.lower()
 			result = globals()[name]
 		except KeyError:
 			raise ValueError("period not in (second, minute, hour, day, "
 				"month, year)")
-	elif isinstance(period, (int, long)):
+	elif isinstance(period, numbers.Number):
 		result = period
 	elif isinstance(period, datetime.timedelta):
 		result = period.days * get_period_seconds('day') + period.seconds
@@ -312,11 +316,11 @@ def get_date_format_string(period):
 	For example,
 
 	>>> get_date_format_string('month')
-	u'%Y-%m'
+	'%Y-%m'
 	>>> get_date_format_string(3600)
-	u'%Y-%m-%d %H'
+	'%Y-%m-%d %H'
 	>>> get_date_format_string('hour')
-	u'%Y-%m-%d %H'
+	'%Y-%m-%d %H'
 	>>> get_date_format_string(None)
 	Traceback (most recent call last):
 		...
@@ -328,7 +332,7 @@ def get_date_format_string(period):
 	"""
 	# handle the special case of 'month' which doesn't have
 	#  a static interval in seconds
-	if isinstance(period, basestring) and period.lower() == 'month':
+	if isinstance(period, six.string_types) and period.lower() == 'month':
 		return '%Y-%m'
 	file_period_secs = get_period_seconds(period)
 	format_pieces = ('%Y', '-%m-%d', ' %H', '-%M', '-%S')
@@ -339,7 +343,7 @@ def get_date_format_string(period):
 		seconds_per_minute,
 		1, # seconds_per_second
 		)
-	mods = map(lambda interval: file_period_secs % interval, intervals)
+	mods = list(map(lambda interval: file_period_secs % interval, intervals))
 	format_pieces = format_pieces[: mods.index(0) + 1]
 	return ''.join(format_pieces)
 
