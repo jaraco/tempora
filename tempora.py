@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"Date time utilities not available in stock python"
+"Objects and routines pertaining to date and time (tempora)"
 
 from __future__ import division, unicode_literals
 
