@@ -9,7 +9,7 @@ import time
 import re
 import numbers
 
-from jaraco.util import six
+import six
 
 from jaraco.util.string import local_format as lf
 
