@@ -22,6 +22,11 @@ class Stopwatch(object):
 	>>> w.start()
 	>>> w.split() < _1_sec
 	True
+
+	It should be possible to launch the Stopwatch in a context:
+
+	>>> with Stopwatch() as watch:
+	...     assert isinstance(watch.split(), datetime.timedelta)
 	"""
 	def __init__(self):
 		self.reset()
@@ -46,7 +51,9 @@ class Stopwatch(object):
 		return self.elapsed + local_duration
 
 	# context manager support
-	__enter__ = start
+	def __enter__(self):
+		self.start()
+		return self
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.stop()
