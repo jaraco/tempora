@@ -1,0 +1,4 @@
+1.0
+===
+
+Extracted `timing` module from jaraco.util 10.1.
