@@ -17,6 +17,7 @@ class Parser(object):
 	"""
 	Datetime parser: parses a date-time string using multiple possible
 	formats.
+
 	>>> p = Parser(('%H%M', '%H:%M'))
 	>>> tuple(p.parse('1319'))
 	(1900, 1, 1, 13, 19, 0, 0, 1, -1)
@@ -35,6 +36,7 @@ class Parser(object):
 
 	Be forewarned, a ValueError will be raised if more than one format
 	matches:
+
 	>>> Parser(('%H%M', '%H%M%S')).parse('732')
 	Traceback (most recent call last):
 		...
