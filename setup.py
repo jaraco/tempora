@@ -12,7 +12,8 @@ setup_params = dict(
 	use_hg_version=True,
 	author="Jason R. Coombs",
 	author_email="jaraco@jaraco.com",
-	description="jaraco.timing",
+	description="Python routines for quick and dirty profiling and rate "
+		"limits",
 	long_description=long_description,
 	url="https://bitbucket.org/jaraco/jaraco.timing",
 	packages=setuptools.find_packages(),
