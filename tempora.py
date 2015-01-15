@@ -365,7 +365,7 @@ def calculate_prorated_values():
 	A utility function to prompt for a rate (a string in units per
 	unit time), and return that same rate for various time periods.
 	"""
-	rate = raw_input("Enter the rate (3/hour, 50/month)> ")
+	rate = six.moves.input("Enter the rate (3/hour, 50/month)> ")
 	res = re.match('(?P<value>[\d.]+)/(?P<period>\w+)$', rate).groupdict()
 	value = float(res['value'])
 	value_per_second = value / get_period_seconds(res['period'])
