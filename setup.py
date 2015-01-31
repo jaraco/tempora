@@ -17,7 +17,7 @@ setup_params = dict(
 	description="tempora",
 	long_description=long_description,
 	url="https://bitbucket.org/jaraco/tempora",
-	pymodules=['tempora'],
+	py_modules=['tempora'],
 	entry_points={
 		'console_scripts': [
 			'calc-prorate = tempora:calculate_prorated_values',
