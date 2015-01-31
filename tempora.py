@@ -11,7 +11,6 @@ import numbers
 
 import six
 
-from jaraco.util.string import local_format as lf
 
 class Parser(object):
 	"""
@@ -147,8 +146,8 @@ class DatetimeConstructor(object):
 				pass
 			if kwargs:
 				first_key = kwargs.keys()[0]
-				raise TypeError(lf("{first_key} is an invalid keyword "
-					"argument for this function."))
+				raise TypeError("{first_key} is an invalid keyword "
+					"argument for this function.".format(**locals()))
 		else:
 			result = datetime.datetime(*args, **kwargs)
 		return result
@@ -156,11 +155,11 @@ class DatetimeConstructor(object):
 	@classmethod
 	def __get_dt_constructor(cls, moduleName, name):
 		try:
-			method_name = lf('__dt_from_{moduleName}_{name}__')
+			method_name = '__dt_from_{moduleName}_{name}__'.format(**locals())
 			return getattr(cls, method_name)
 		except AttributeError:
-			raise TypeError(lf("No way to construct datetime.datetime from "
-				"{moduleName}.{name}"))
+			raise TypeError("No way to construct datetime.datetime from "
+				"{moduleName}.{name}".format(**locals()))
 
 	@staticmethod
 	def __dt_from_datetime_datetime__(source):
@@ -371,7 +370,7 @@ def calculate_prorated_values():
 	value_per_second = value / get_period_seconds(res['period'])
 	for period in ('minute', 'hour', 'day', 'month', 'year'):
 		period_value = value_per_second * get_period_seconds(period)
-		print(lf("per {period}: {period_value}"))
+		print("per {period}: {period_value}".format(**locals()))
 
 def parse_timedelta(str):
 	"""
@@ -393,7 +392,8 @@ def parse_timedelta(str):
 def _parse_timedelta_part(part):
 	match = re.match('(?P<value>[\d.]+) (?P<unit>\w+)', part)
 	if not match:
-		raise ValueError(lf("Unable to parse {part!r} as a time delta"))
+		msg = "Unable to parse {part!r} as a time delta".format(**locals())
+		raise ValueError(msg)
 	unit = match.group('unit')
 	if not unit.endswith('s'):
 		unit += 's'
