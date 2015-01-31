@@ -18,6 +18,11 @@ setup_params = dict(
 	long_description=long_description,
 	url="https://bitbucket.org/jaraco/tempora",
 	pymodules=['tempora'],
+	entry_points={
+		'console_scripts': [
+			'calc-prorate = tempora:calculate_prorated_values',
+		],
+	},
 	setup_requires=[
 		'hgtools',
 		'pytest-runner',
