@@ -8,6 +8,7 @@ import datetime
 import time
 import re
 import numbers
+import functools
 
 import six
 
@@ -111,7 +112,7 @@ def strftime(fmt, t):
 		('%u', '%03d' % (t.microsecond % 1000))
 		)
 	doSub = lambda s, sub: s.replace(*sub)
-	doSubs = lambda s: reduce(doSub, subs, s)
+	doSubs = lambda s: functools.reduce(doSub, subs, s)
 	fmt = '%%'.join(map(doSubs, fmt.split('%%')))
 	return t.strftime(fmt)
 
