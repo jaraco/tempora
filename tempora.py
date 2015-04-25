@@ -404,3 +404,16 @@ def _parse_timedelta_part(part):
 	if not unit.endswith('s'):
 		unit += 's'
 	return datetime.timedelta(**{unit: float(match.group('value'))})
+
+def divide_timedelta(td1, td2):
+	"""
+	Get the ratio of two timedeltas
+
+	>>> one_day = datetime.timedelta(days=1)
+	>>> one_hour = datetime.timedelta(hours=1)
+	>>> divide_timedelta(one_hour, one_day) == 1 / 24
+	True
+	"""
+	if six.PY2:
+		return td1.total_seconds() / td2.total_seconds()
+	return td1 / td2
