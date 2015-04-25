@@ -1,6 +1,12 @@
 Welcome to tempora documentation!
 =================================
 
+.. toctree::
+   :maxdepth: 1
+
+   history
+
+
 .. automodule:: tempora
     :members:
     :undoc-members:
