@@ -238,6 +238,7 @@ def datetime_mod(dt, period, start = None):
 def datetime_round(dt, period, start = None):
 	"""
 	Find the nearest even period for the specified date/time.
+
 	>>> datetime_round(datetime.datetime(2004, 11, 13, 8, 11, 13),
 	...     datetime.timedelta(hours = 1))
 	datetime.datetime(2004, 11, 13, 8, 0)
