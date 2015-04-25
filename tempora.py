@@ -414,6 +414,9 @@ def divide_timedelta(td1, td2):
 	>>> divide_timedelta(one_hour, one_day) == 1 / 24
 	True
 	"""
-	if six.PY2:
+	try:
+		return td1 / td2
+	except TypeError:
+		# Python 3.2 gets division
+		# http://bugs.python.org/issue2706
 		return td1.total_seconds() / td2.total_seconds()
-	return td1 / td2
