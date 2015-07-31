@@ -1,6 +1,5 @@
 import datetime
-
-import mock
+from unittest import mock
 
 from jaraco import timing
 

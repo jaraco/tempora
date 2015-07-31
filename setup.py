@@ -33,6 +33,7 @@ setup_params = dict(
 	] + pytest_runner + sphinx,
 	tests_require=[
 		'pytest',
+		'backports.unittest_mock',
 	],
 	classifiers=[
 		"Development Status :: 5 - Production/Stable",

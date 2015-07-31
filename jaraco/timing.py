@@ -27,6 +27,12 @@ class Stopwatch(object):
 
 	>>> with Stopwatch() as watch:
 	...     assert isinstance(watch.split(), datetime.timedelta)
+
+	In that case, the watch is stopped when the context is exited,
+	so to read the elapsed time::
+
+	>>> watch.elapsed # doctest: +ELLIPSIS
+	datetime.timedelta(0, ...)
 	"""
 	def __init__(self):
 		self.reset()
