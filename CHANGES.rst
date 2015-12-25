@@ -1,3 +1,10 @@
+1.4
+===
+
+Moved to Github.
+
+Improved test support on Python 2.
+
 1.3
 ===
 
