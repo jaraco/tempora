@@ -8,7 +8,7 @@ extensions = [
 ]
 
 # General information about the project.
-project = 'jaraco.timing'
+project = 'skeleton'
 copyright = '2015 Jason R. Coombs'
 
 # The short X.Y version.
