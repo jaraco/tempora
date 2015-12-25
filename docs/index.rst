@@ -1,4 +1,4 @@
-Welcome to tempora documentation!
+Welcome to skeleton documentation!
 ========================================
 
 .. toctree::
@@ -7,7 +7,7 @@ Welcome to tempora documentation!
    history
 
 
-.. automodule:: tempora
+.. automodule:: skeleton
     :members:
     :undoc-members:
     :show-inheritance:
