@@ -1,4 +1,4 @@
-Welcome to jaraco.timing documentation!
+Welcome to skeleton documentation!
 ========================================
 
 .. toctree::
@@ -7,7 +7,7 @@ Welcome to jaraco.timing documentation!
    history
 
 
-.. automodule:: jaraco.timing
+.. automodule:: skeleton
     :members:
     :undoc-members:
     :show-inheritance:
