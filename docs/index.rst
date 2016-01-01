@@ -1,5 +1,5 @@
 Welcome to jaraco.timing documentation!
-===============================
+=======================================
 
 .. toctree::
    :maxdepth: 1
