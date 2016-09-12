@@ -130,7 +130,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         return cls.at_time(when, daily, target)
 
 
-class Scheduler:
+class Scheduler(object):
     def __init__(self):
         self.queue = []
 
