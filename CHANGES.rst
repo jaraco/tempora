@@ -1,3 +1,8 @@
+1.5
+===
+
+Adopt ``jaraco.timing`` as ``tempora.timing``.
+
 1.4
 ===
 
