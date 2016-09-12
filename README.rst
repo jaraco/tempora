@@ -7,3 +7,11 @@
 
 .. image:: https://img.shields.io/travis/jaraco/tempora/master.svg
    :target: http://travis-ci.org/jaraco/tempora
+
+Objects and routines pertaining to date and time (tempora).
+
+Modules include:
+
+ - tempora (top level package module) contains miscellaneous
+   utilities and constants.
+ - timing contains routines for measuring and profiling.
