@@ -131,6 +131,10 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
 
 
 class Scheduler(object):
+    """
+    A rudimentary abstract scheduler accepting DelayedCommands
+    and dispatching them on schedule.
+    """
     def __init__(self):
         self.queue = []
 
