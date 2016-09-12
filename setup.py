@@ -18,7 +18,7 @@ needs_wheel = {'release', 'bdist_wheel'}.intersection(sys.argv)
 wheel = ['wheel'] if needs_wheel else []
 
 name = 'tempora'
-description = ''
+description = 'Objects and routines pertaining to date and time (tempora)'
 
 setup_params = dict(
 	name=name,
@@ -40,6 +40,7 @@ setup_params = dict(
 	] + pytest_runner + sphinx + wheel,
 	tests_require=[
 		'pytest>=2.8',
+		'backports.unittest_mock',
 	],
 	classifiers=[
 		"Development Status :: 5 - Production/Stable",
