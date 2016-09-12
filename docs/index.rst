@@ -17,6 +17,11 @@ Welcome to tempora documentation!
     :undoc-members:
     :show-inheritance:
 
+.. automodule:: tempora.schedule
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Indices and tables
 ==================

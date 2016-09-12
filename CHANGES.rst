@@ -1,3 +1,8 @@
+1.6
+===
+
+Adopt ``irc.schedule`` as ``tempora.schedule``.
+
 1.5
 ===
 

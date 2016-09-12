@@ -15,3 +15,4 @@ Modules include:
  - tempora (top level package module) contains miscellaneous
    utilities and constants.
  - timing contains routines for measuring and profiling.
+ - schedule contains an event scheduler.
