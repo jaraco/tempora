@@ -32,6 +32,7 @@ setup_params = dict(
 	include_package_data=True,
 	namespace_packages=name.split('.')[:-1],
 	install_requires=[
+		'six',
 	],
 	extras_require={
 	},
