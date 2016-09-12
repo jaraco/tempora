@@ -3,6 +3,8 @@
 
 Adopt ``jaraco.timing`` as ``tempora.timing``.
 
+Automatic deployment with Travis-CI.
+
 1.4
 ===
 
