@@ -1,7 +1,7 @@
 import datetime
 from unittest import mock
 
-from jaraco import timing
+from tempora import timing
 
 
 def test_IntervalGovernor():

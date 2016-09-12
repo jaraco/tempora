@@ -17,7 +17,7 @@ sphinx = ['sphinx', 'rst.linker'] if needs_sphinx else []
 needs_wheel = {'release', 'bdist_wheel'}.intersection(sys.argv)
 wheel = ['wheel'] if needs_wheel else []
 
-name = 'jaraco.timing'
+name = 'tempora'
 description = 'Routines for quick and dirty profiling and rate limits'
 
 setup_params = dict(
