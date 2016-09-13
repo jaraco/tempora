@@ -149,7 +149,7 @@ class Scheduler(object):
                 break
             self.run(command)
             if isinstance(command, PeriodicCommand):
-                self.schedule(command.next())
+                self.add(command.next())
             del self.queue[0]
 
     @abc.abstractmethod
