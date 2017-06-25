@@ -1,9 +1,14 @@
-1.6.1
+1.7.1
 =====
 
 #3: Stopwatch now behaves reliably during timezone
     changes and (presumably) daylight savings time
     changes.
+
+1.7
+===
+
+Update project skeleton.
 
 1.6
 ===
