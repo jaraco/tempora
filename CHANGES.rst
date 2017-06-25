@@ -1,3 +1,10 @@
+1.8
+===
+
+Introducing ``timing.Timer``, featuring a ``expired``
+method for detecting when a certain duration has been
+exceeded.
+
 1.7.1
 =====
 

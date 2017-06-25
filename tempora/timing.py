@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals, absolute_import
 
 import datetime
@@ -64,6 +66,7 @@ class Stopwatch(object):
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.stop()
 
+
 class IntervalGovernor(object):
 	"""
 	Decorate a function to only allow it to be called once per
@@ -88,3 +91,33 @@ class IntervalGovernor(object):
 		return wrapper
 
 	__call__ = decorate
+
+
+class Timer(Stopwatch):
+	"""
+	Watch for a target elapsed time.
+
+	>>> t = Timer(0.1)
+	>>> t.expired()
+	False
+	>>> __import__('time').sleep(0.15)
+	>>> t.expired()
+	True
+	"""
+	def __init__(self, target=float('Inf')):
+		self.target = self._accept(target)
+		super(Timer, self).__init__()
+
+	def _accept(self, target):
+		"Accept None or ∞ or datetime or numeric for target"
+		if isinstance(target, datetime.timedelta):
+			target = target.total_seconds()
+
+		if target is None:
+			# treat None as infinite target
+			target = float('Inf')
+
+		return target
+
+	def expired(self):
+		return self.split().total_seconds() > self.target
