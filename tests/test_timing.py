@@ -1,4 +1,7 @@
 import datetime
+import time
+import contextlib
+import os
 from unittest import mock
 
 from tempora import timing
@@ -18,3 +21,24 @@ def test_IntervalGovernor():
 	governed('b')
 	governed(3, 'sir')
 	func_under_test.assert_called_once_with('a')
+
+
+@contextlib.contextmanager
+def change(alt_tz, monkeypatch):
+	monkeypatch.setitem(os.environ, 'TZ', alt_tz)
+	time.tzset()
+	try:
+		yield
+	finally:
+		monkeypatch.delitem(os.environ, 'TZ')
+		time.tzset()
+
+
+def test_Stopwatch_timezone_change(monkeypatch):
+	"""
+	The stopwatch should provide a consistent duration even
+	if the timezone changes.
+	"""
+	watch = timing.Stopwatch()
+	with change('AEST-10AEDT-11,M10.5.0,M3.5.0', monkeypatch):
+		assert abs(watch.split().total_seconds()) < 0.1
