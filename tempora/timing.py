@@ -44,16 +44,16 @@ class Stopwatch(object):
 			del self.start_time
 
 	def start(self):
-		self.start_time = datetime.datetime.now()
+		self.start_time = datetime.datetime.utcnow()
 
 	def stop(self):
-		stop_time = datetime.datetime.now()
+		stop_time = datetime.datetime.utcnow()
 		self.elapsed += stop_time - self.start_time
 		del self.start_time
 		return self.elapsed
 
 	def split(self):
-		local_duration = datetime.datetime.now() - self.start_time
+		local_duration = datetime.datetime.utcnow() - self.start_time
 		return self.elapsed + local_duration
 
 	# context manager support

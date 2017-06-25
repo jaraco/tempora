@@ -1,3 +1,10 @@
+1.6.1
+=====
+
+#3: Stopwatch now behaves reliably during timezone
+    changes and (presumably) daylight savings time
+    changes.
+
 1.6
 ===
 
