@@ -41,9 +41,11 @@ class DelayedCommand(datetime.datetime):
 
     @classmethod
     def from_datetime(cls, other):
-        return cls(other.year, other.month, other.day, other.hour,
+        return cls(
+            other.year, other.month, other.day, other.hour,
             other.minute, other.second, other.microsecond,
-            other.tzinfo)
+            other.tzinfo,
+        )
 
     @classmethod
     def after(cls, delay, target):
@@ -95,8 +97,10 @@ class PeriodicCommand(DelayedCommand):
 
     def __setattr__(self, key, value):
         if key == 'delay' and not value > datetime.timedelta():
-            raise ValueError("A PeriodicCommand must have a positive, "
-                "non-zero delay.")
+            raise ValueError(
+                "A PeriodicCommand must have a positive, "
+                "non-zero delay."
+            )
         super(PeriodicCommand, self).__setattr__(key, value)
 
 
@@ -177,4 +181,3 @@ class CallbackScheduler(Scheduler):
 
     def run(self, command):
         self.dispatch(command.target)
-

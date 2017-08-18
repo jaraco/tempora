@@ -6,6 +6,7 @@ import datetime
 import functools
 import numbers
 
+
 class Stopwatch(object):
 	"""
 	A simple stopwatch which starts automatically.

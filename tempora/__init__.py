@@ -120,7 +120,7 @@ def strftime(fmt, t):
 	return t.strftime(fmt)
 
 
-def strptime(s, fmt, tzinfo = None):
+def strptime(s, fmt, tzinfo=None):
 	"""
 	A function to replace strptime in the time module.  Should behave
 	identically to the strptime function except it returns a datetime.datetime
@@ -128,7 +128,7 @@ def strptime(s, fmt, tzinfo = None):
 	Also takes an optional tzinfo parameter which is a time zone info object.
 	"""
 	res = time.strptime(s, fmt)
-	return datetime.datetime(tzinfo = tzinfo, *res[:6])
+	return datetime.datetime(tzinfo=tzinfo, *res[:6])
 
 
 class DatetimeConstructor(object):
