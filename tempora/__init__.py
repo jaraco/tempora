@@ -46,7 +46,7 @@ class Parser(object):
 	formats = ('%m/%d/%Y', '%m/%d/%y', '%Y-%m-%d', '%d-%b-%Y', '%d-%b-%y')
 	"some common default formats"
 
-	def __init__(self, formats = None):
+	def __init__(self, formats=None):
 		if formats:
 			self.formats = formats
 
@@ -55,11 +55,11 @@ class Parser(object):
 		results = tuple(filter(None, map(self._parse, self.formats)))
 		del self.target
 		if not results:
-			raise ValueError("No format strings matched the target %s."
-				% target)
+			tmpl = "No format strings matched the target {target}."
+			raise ValueError(tmpl.format(**locals()))
 		if not len(results) == 1:
-			raise ValueError("More than one format string matched target %s."
-				% target)
+			tmpl = "More than one format string matched target {target}."
+			raise ValueError(tmpl.format(**locals()))
 		return results[0]
 
 	def _parse(self, format):
@@ -68,6 +68,7 @@ class Parser(object):
 		except ValueError:
 			result = False
 		return result
+
 
 # some useful constants
 osc_per_year = 290091329207984000
@@ -86,9 +87,10 @@ seconds_per_day = seconds_per_hour * hours_per_day
 days_per_year = seconds_per_year / seconds_per_day
 thirty_days = datetime.timedelta(days=30)
 # these values provide useful averages
-six_months = datetime.timedelta(days=days_per_year/2)
-seconds_per_month = seconds_per_year/12
-hours_per_month=hours_per_day*days_per_year/12
+six_months = datetime.timedelta(days=days_per_year / 2)
+seconds_per_month = seconds_per_year / 12
+hours_per_month = hours_per_day * days_per_year / 12
+
 
 def strftime(fmt, t):
 	"""A class to replace the strftime in datetime package or time module.
@@ -102,7 +104,8 @@ def strftime(fmt, t):
 	assert isinstance(t, (datetime.datetime, datetime.time, datetime.date))
 	try:
 		year = t.year
-		if year < 1900: t = t.replace(year = 1900)
+		if year < 1900:
+			t = t.replace(year=1900)
 	except AttributeError:
 		year = 1900
 	subs = (
@@ -110,11 +113,12 @@ def strftime(fmt, t):
 		('%y', '%02d' % (year % 100)),
 		('%s', '%03d' % (t.microsecond // 1000)),
 		('%u', '%03d' % (t.microsecond % 1000))
-		)
+	)
 	doSub = lambda s, sub: s.replace(*sub)
 	doSubs = lambda s: functools.reduce(doSub, subs, s)
 	fmt = '%%'.join(map(doSubs, fmt.split('%%')))
 	return t.strftime(fmt)
+
 
 def strptime(s, fmt, tzinfo = None):
 	"""
@@ -125,6 +129,7 @@ def strptime(s, fmt, tzinfo = None):
 	"""
 	res = time.strptime(s, fmt)
 	return datetime.datetime(tzinfo = tzinfo, *res[:6])
+
 
 class DatetimeConstructor(object):
 	"""
@@ -138,17 +143,22 @@ class DatetimeConstructor(object):
 		types found in python and pythonwin"""
 		if len(args) == 1:
 			arg = args[0]
-			method = cls.__get_dt_constructor(type(arg).__module__,
-				type(arg).__name__)
+			method = cls.__get_dt_constructor(
+				type(arg).__module__,
+				type(arg).__name__,
+			)
 			result = method(arg)
 			try:
-				result = result.replace(tzinfo = kwargs.pop('tzinfo'))
+				result = result.replace(tzinfo=kwargs.pop('tzinfo'))
 			except KeyError:
 				pass
 			if kwargs:
 				first_key = kwargs.keys()[0]
-				raise TypeError("{first_key} is an invalid keyword "
-					"argument for this function.".format(**locals()))
+				tmpl = (
+					"{first_key} is an invalid keyword "
+					"argument for this function."
+				)
+				raise TypeError(tmpl.format(**locals()))
 		else:
 			result = datetime.datetime(*args, **kwargs)
 		return result
@@ -159,13 +169,18 @@ class DatetimeConstructor(object):
 			method_name = '__dt_from_{moduleName}_{name}__'.format(**locals())
 			return getattr(cls, method_name)
 		except AttributeError:
-			raise TypeError("No way to construct datetime.datetime from "
-				"{moduleName}.{name}".format(**locals()))
+			tmpl = (
+				"No way to construct datetime.datetime from "
+				"{moduleName}.{name}"
+			)
+			raise TypeError(tmpl.format(**locals()))
 
 	@staticmethod
 	def __dt_from_datetime_datetime__(source):
-		dtattrs = ('year', 'month', 'day', 'hour', 'minute', 'second',
-			'microsecond', 'tzinfo')
+		dtattrs = (
+			'year', 'month', 'day', 'hour', 'minute', 'second',
+			'microsecond', 'tzinfo',
+		)
 		attrs = map(lambda a: getattr(source, a), dtattrs)
 		return datetime.datetime(*attrs)
 
@@ -179,7 +194,7 @@ class DatetimeConstructor(object):
 		microseconds_per_day = seconds_per_day * 1000000
 		microseconds = float(pyt) * microseconds_per_day
 		microsecond = int(microseconds % 1000000)
-		result = result.replace(microsecond = microsecond)
+		result = result.replace(microsecond=microsecond)
 		return result
 
 	@staticmethod
@@ -193,7 +208,8 @@ class DatetimeConstructor(object):
 	def __dt_from_time_struct_time__(s):
 		return datetime.datetime(*s[:6])
 
-def datetime_mod(dt, period, start = None):
+
+def datetime_mod(dt, period, start=None):
 	"""
 	Find the time which is the specified date/time truncated to the time delta
 	relative to the start date/time.
@@ -230,12 +246,13 @@ def datetime_mod(dt, period, start = None):
 		(td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
 	)
 	delta, period = map(get_time_delta_microseconds, (delta, period))
-	offset = datetime.timedelta(microseconds = delta % period)
+	offset = datetime.timedelta(microseconds=delta % period)
 	# the result is the original specified time minus the offset
 	result = dt - offset
 	return result
 
-def datetime_round(dt, period, start = None):
+
+def datetime_round(dt, period, start=None):
 	"""
 	Find the nearest even period for the specified date/time.
 
@@ -254,6 +271,7 @@ def datetime_round(dt, period, start = None):
 		result += period
 	return result
 
+
 def get_nearest_year_for_day(day):
 	"""
 	Returns the nearest year to now inferred from a Julian date.
@@ -261,12 +279,13 @@ def get_nearest_year_for_day(day):
 	now = time.gmtime()
 	result = now.tm_year
 	# if the day is far greater than today, it must be from last year
-	if day - now.tm_yday > 365//2:
+	if day - now.tm_yday > 365 // 2:
 		result -= 1
 	# if the day is far less than today, it must be for next year.
-	if now.tm_yday - day > 365//2:
+	if now.tm_yday - day > 365 // 2:
 		result += 1
 	return result
+
 
 def gregorian_date(year, julian_day):
 	"""
@@ -277,8 +296,9 @@ def gregorian_date(year, julian_day):
 	datetime.date(2007, 1, 15)
 	"""
 	result = datetime.date(year, 1, 1)
-	result += datetime.timedelta(days = julian_day - 1)
+	result += datetime.timedelta(days=julian_day - 1)
 	return result
+
 
 def get_period_seconds(period):
 	"""
@@ -300,8 +320,8 @@ def get_period_seconds(period):
 			name = 'seconds_per_' + period.lower()
 			result = globals()[name]
 		except KeyError:
-			raise ValueError("period not in (second, minute, hour, day, "
-				"month, year)")
+			msg = "period not in (second, minute, hour, day, month, year)"
+			raise ValueError(msg)
 	elif isinstance(period, numbers.Number):
 		result = period
 	elif isinstance(period, datetime.timedelta):
@@ -309,6 +329,7 @@ def get_period_seconds(period):
 	else:
 		raise TypeError('period must be a string or integer')
 	return result
+
 
 def get_date_format_string(period):
 	"""
@@ -339,16 +360,18 @@ def get_date_format_string(period):
 		return '%Y-%m'
 	file_period_secs = get_period_seconds(period)
 	format_pieces = ('%Y', '-%m-%d', ' %H', '-%M', '-%S')
+	seconds_per_second = 1
 	intervals = (
 		seconds_per_year,
 		seconds_per_day,
 		seconds_per_hour,
 		seconds_per_minute,
-		1, # seconds_per_second
-		)
+		seconds_per_second,
+	)
 	mods = list(map(lambda interval: file_period_secs % interval, intervals))
 	format_pieces = format_pieces[: mods.index(0) + 1]
 	return ''.join(format_pieces)
+
 
 def divide_timedelta_float(td, divisor):
 	"""
@@ -363,8 +386,9 @@ def divide_timedelta_float(td, divisor):
 	"""
 	# td is comprised of days, seconds, microseconds
 	dsm = [getattr(td, attr) for attr in ('days', 'seconds', 'microseconds')]
-	dsm = map(lambda elem: elem/divisor, dsm)
+	dsm = map(lambda elem: elem / divisor, dsm)
 	return datetime.timedelta(*dsm)
+
 
 def calculate_prorated_values():
 	"""
@@ -378,6 +402,7 @@ def calculate_prorated_values():
 	for period in ('minute', 'hour', 'day', 'month', 'year'):
 		period_value = value_per_second * get_period_seconds(period)
 		print("per {period}: {period_value}".format(**locals()))
+
 
 def parse_timedelta(str):
 	"""
@@ -412,6 +437,7 @@ def parse_timedelta(str):
 	deltas = (_parse_timedelta_part(part.strip()) for part in str.split(','))
 	return sum(deltas, datetime.timedelta())
 
+
 def _parse_timedelta_part(part):
 	match = re.match('(?P<value>[\d.]+) (?P<unit>\w+)', part)
 	if not match:
@@ -429,6 +455,7 @@ def _parse_timedelta_part(part):
 		value = value * days_per_year
 	return datetime.timedelta(**{unit: value})
 
+
 def divide_timedelta(td1, td2):
 	"""
 	Get the ratio of two timedeltas
@@ -444,6 +471,7 @@ def divide_timedelta(td1, td2):
 		# Python 3.2 gets division
 		# http://bugs.python.org/issue2706
 		return td1.total_seconds() / td2.total_seconds()
+
 
 def date_range(start=None, stop=None, step=None):
 	"""
@@ -461,8 +489,10 @@ def date_range(start=None, stop=None, step=None):
 	>>> datetime.datetime(2005,12,25) in my_range
 	False
 	"""
-	if step is None: step = datetime.timedelta(days=1)
-	if start is None: start = datetime.datetime.now()
+	if step is None:
+		step = datetime.timedelta(days=1)
+	if start is None:
+		start = datetime.datetime.now()
 	while start < stop:
 		yield start
 		start += step
