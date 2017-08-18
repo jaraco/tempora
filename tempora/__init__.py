@@ -392,6 +392,22 @@ def parse_timedelta(str):
 
 	>>> parse_timedelta('47.32 days, 20 minutes, 15.4 milliseconds')
 	datetime.timedelta(47, 28848, 15400)
+
+	Supports weeks, months, years
+
+	>>> parse_timedelta('1 week')
+	datetime.timedelta(7)
+
+	>>> parse_timedelta('1 year, 1 month')
+	datetime.timedelta(395, 58685)
+
+	Note that months and years strict intervals, not aligned
+	to a calendar:
+
+	>>> now = datetime.datetime.now()
+	>>> later = now + parse_timedelta('1 year')
+	>>> later.replace(year=now.year) - now
+	datetime.timedelta(0, 20940)
 	"""
 	deltas = (_parse_timedelta_part(part.strip()) for part in str.split(','))
 	return sum(deltas, datetime.timedelta())
@@ -401,10 +417,17 @@ def _parse_timedelta_part(part):
 	if not match:
 		msg = "Unable to parse {part!r} as a time delta".format(**locals())
 		raise ValueError(msg)
-	unit = match.group('unit')
+	unit = match.group('unit').lower()
 	if not unit.endswith('s'):
 		unit += 's'
-	return datetime.timedelta(**{unit: float(match.group('value'))})
+	value = float(match.group('value'))
+	if unit == 'months':
+		unit = 'years'
+		value = value / 12
+	if unit == 'years':
+		unit = 'days'
+		value = value * days_per_year
+	return datetime.timedelta(**{unit: value})
 
 def divide_timedelta(td1, td2):
 	"""

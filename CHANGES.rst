@@ -1,3 +1,8 @@
+1.9
+===
+
+Added support for months, years to ``parse_timedelta``.
+
 1.8
 ===
 
