@@ -11,6 +11,11 @@ with io.open('README.rst', encoding='utf-8') as readme:
 
 name = 'tempora'
 description = 'Objects and routines pertaining to date and time (tempora)'
+nspkg_technique = 'managed'
+"""
+Does this package use "native" namespace packages or
+pkg_resources "managed" namespace packages?
+"""
 
 params = dict(
 	name=name,
@@ -22,6 +27,10 @@ params = dict(
 	url="https://github.com/jaraco/" + name,
 	packages=setuptools.find_packages(),
 	include_package_data=True,
+	namespace_packages=(
+		name.split('.')[:-1] if nspkg_technique == 'managed'
+		else []
+	),
 	python_requires='>=2.7',
 	install_requires=[
 		'six',
