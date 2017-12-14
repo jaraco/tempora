@@ -5,6 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import datetime
 import functools
 import numbers
+import time
 
 
 class Stopwatch(object):
@@ -122,3 +123,89 @@ class Timer(Stopwatch):
 
 	def expired(self):
 		return self.split().total_seconds() > self.target
+
+
+class BackoffDelay(object):
+	"""
+	Exponential backoff delay.
+
+	Useful for defining delays between retries. Consider for use
+	with ``jaraco.functools.retry_call`` as the cleanup.
+
+	Default behavior has no effect; a delay or jitter must
+	be supplied for the call to be non-degenerate.
+
+	>>> bd = BackoffDelay()
+	>>> bd()
+	>>> bd()
+
+	The following instance will delay 10ms for the first call,
+	20ms for the second, etc.
+
+	>>> bd = BackoffDelay(delay=0.01, factor=2)
+	>>> bd()
+	>>> bd()
+
+	Inspect and adjust the state of the delay anytime.
+
+	>>> bd.delay
+	0.04
+	>>> bd.delay = 0.01
+
+	Set limit to prevent the delay from exceeding bounds.
+
+	>>> bd = BackoffDelay(delay=0.01, factor=2, limit=0.015)
+	>>> bd()
+	>>> bd.delay
+	0.015
+
+	Limit may be a callable taking a number and returning
+	the limited number.
+
+	>>> at_least_one = lambda n: max(n, 1)
+	>>> bd = BackoffDelay(delay=0.01, factor=2, limit=at_least_one)
+	>>> bd()
+	>>> bd.delay
+	1
+
+	Pass a jitter to add or subtract seconds to the delay.
+
+	>>> bd = BackoffDelay(jitter=0.01)
+	>>> bd()
+	>>> bd.delay
+	0.01
+
+	Jitter may be a callable. To supply a non-deterministic jitter
+	between -0.5 and 0.5, consider:
+
+	>>> import random
+	>>> jitter=functools.partial(random.uniform, -0.5, 0.5)
+	>>> bd = BackoffDelay(jitter=jitter)
+	>>> bd()
+	>>> 0 <= bd.delay <= 0.5
+	True
+	"""
+
+	delay = 0
+
+	factor = 1
+	"Multiplier applied to delay"
+
+	jitter = 0
+	"Number or callable returning extra seconds to add to delay"
+
+	def __init__(self, delay=0, factor=1, limit=float('inf'), jitter=0):
+		self.delay = delay
+		self.factor = factor
+		if isinstance(limit, numbers.Number):
+			limit_ = limit
+			limit = lambda n: max(0, min(limit_, n))
+		self.limit = limit
+		if isinstance(jitter, numbers.Number):
+			jitter_ = jitter
+			jitter = lambda: jitter_
+		self.jitter = jitter
+
+	def __call__(self):
+		time.sleep(self.delay)
+		self.delay = self.limit(self.delay * self.factor + self.jitter())

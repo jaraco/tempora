@@ -1,3 +1,9 @@
+1.10
+====
+
+Added ``timing.BackoffDelay``, suitable for implementing
+exponential backoff delays, such as those between retries.
+
 1.9
 ===
 
