@@ -10,22 +10,32 @@ from tempora import schedule
 
 @pytest.fixture
 def naive_times(monkeypatch):
-	monkeypatch.setattr('irc.schedule.from_timestamp',
+	monkeypatch.setattr(
+		'irc.schedule.from_timestamp',
 		datetime.datetime.fromtimestamp)
 	monkeypatch.setattr('irc.schedule.now', datetime.datetime.now)
+
+
+do_nothing = type(None)
+try:
+	do_nothing()
+except TypeError:
+	# Python 2 compat
+	def do_nothing():
+		return None
 
 
 def test_delayed_command_order():
 	"""
 	delayed commands should be sorted by delay time
 	"""
-	null = lambda: None
 	delays = [random.randint(0, 99) for x in range(5)]
 	cmds = sorted([
-		schedule.DelayedCommand.after(delay, null)
+		schedule.DelayedCommand.after(delay, do_nothing)
 		for delay in delays
 	])
 	assert [c.delay.seconds for c in cmds] == sorted(delays)
+
 
 def test_periodic_command_delay():
 	"A PeriodicCommand must have a positive, non-zero delay."
@@ -33,18 +43,20 @@ def test_periodic_command_delay():
 		schedule.PeriodicCommand.after(0, None)
 	assert str(exc_info.value) == test_periodic_command_delay.__doc__
 
+
 def test_periodic_command_fixed_delay():
 	"""
 	Test that we can construct a periodic command with a fixed initial
 	delay.
 	"""
 	fd = schedule.PeriodicCommandFixedDelay.at_time(
-		at = schedule.now(),
-		delay = datetime.timedelta(seconds=2),
-		target = lambda: None,
-		)
+		at=schedule.now(),
+		delay=datetime.timedelta(seconds=2),
+		target=lambda: None,
+	)
 	assert fd.due() is True
 	assert fd.next().due() is False
+
 
 class TestCommands(object):
 	def test_delayed_command_from_timestamp(self):
@@ -52,7 +64,6 @@ class TestCommands(object):
 		Ensure a delayed command can be constructed from a timestamp.
 		"""
 		t = time.time()
-		do_nothing = lambda: None
 		schedule.DelayedCommand.at_time(t, do_nothing)
 
 	def test_command_at_noon(self):

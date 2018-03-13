@@ -114,8 +114,13 @@ def strftime(fmt, t):
 		('%s', '%03d' % (t.microsecond // 1000)),
 		('%u', '%03d' % (t.microsecond % 1000))
 	)
-	doSub = lambda s, sub: s.replace(*sub)
-	doSubs = lambda s: functools.reduce(doSub, subs, s)
+
+	def doSub(s, sub):
+		return s.replace(*sub)
+
+	def doSubs(s):
+		return functools.reduce(doSub, subs, s)
+
 	fmt = '%%'.join(map(doSubs, fmt.split('%%')))
 	return t.strftime(fmt)
 
@@ -238,13 +243,13 @@ def datetime_mod(dt, period, start=None):
 		start = datetime.datetime.combine(dt.date(), datetime.time())
 	# calculate the difference between the specified time and the start date.
 	delta = dt - start
+
 	# now aggregate the delta and the period into microseconds
 	# Use microseconds because that's the highest precision of these time
 	# pieces.  Also, using microseconds ensures perfect precision (no floating
 	# point errors).
-	get_time_delta_microseconds = lambda td: (
-		(td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
-	)
+	def get_time_delta_microseconds(td):
+		return (td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
 	delta, period = map(get_time_delta_microseconds, (delta, period))
 	offset = datetime.timedelta(microseconds=delta % period)
 	# the result is the original specified time minus the offset
