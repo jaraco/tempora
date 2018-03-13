@@ -6,11 +6,11 @@
 .. image:: https://img.shields.io/travis/jaraco/tempora/master.svg
    :target: https://travis-ci.org/jaraco/tempora
 
-.. .. image:: https://img.shields.io/appveyor/ci/jaraco/skeleton/master.svg
-..    :target: https://ci.appveyor.com/project/jaraco/skeleton/branch/master
+.. .. image:: https://img.shields.io/appveyor/ci/jaraco/tempora/master.svg
+..    :target: https://ci.appveyor.com/project/jaraco/tempora/branch/master
 
-.. image:: https://readthedocs.org/projects/skeleton/badge/?version=latest
-   :target: https://skeleton.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/tempora/badge/?version=latest
+   :target: https://tempora.readthedocs.io/en/latest/?badge=latest
 
 Objects and routines pertaining to date and time (tempora).
 
