@@ -1,3 +1,9 @@
+1.11
+====
+
+#5: Scheduler now honors daylight savings times in the
+    PeriodicCommands.
+
 1.10
 ====
 
