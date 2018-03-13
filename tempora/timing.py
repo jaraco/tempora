@@ -35,7 +35,7 @@ class Stopwatch(object):
 	In that case, the watch is stopped when the context is exited,
 	so to read the elapsed time::
 
-	>>> watch.elapsed # doctest: +ELLIPSIS
+	>>> watch.elapsed
 	datetime.timedelta(0, ...)
 	"""
 	def __init__(self):
