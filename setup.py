@@ -46,6 +46,7 @@ params = dict(
 
 			# local
 			'backports.unittest_mock',
+			'freezegun',
 		],
 		'docs': [
 			# upstream

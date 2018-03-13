@@ -4,6 +4,7 @@ import datetime
 
 import pytest
 import pytz
+import freezegun
 
 from tempora import schedule
 
@@ -92,3 +93,24 @@ class TestTimezones:
 		target = schedule.now().astimezone(target_tz)
 		cmd = schedule.DelayedCommand.at_time(target, target=None)
 		assert cmd.due()
+
+	def test_daylight_savings(self):
+		"""
+		A command at 9am should always be 9am regardless of
+		a DST boundary.
+		"""
+		with freezegun.freeze_time('2018-03-10 08:00:00'):
+			target_tz = pytz.timezone('US/Eastern')
+			target_time = datetime.time(9, tzinfo=target_tz)
+			cmd = schedule.PeriodicCommandFixedDelay.daily_at(
+				target_time,
+				target=lambda: None,
+			)
+
+		def naive(dt):
+			return dt.replace(tzinfo=None)
+
+		assert naive(cmd) == datetime.datetime(2018, 3, 10, 9, 0, 0)
+		next_ = cmd.next()
+		assert naive(next_) == datetime.datetime(2018, 3, 11, 9, 0, 0)
+		assert next_ - cmd == datetime.timedelta(hours=23)
