@@ -36,7 +36,9 @@ class Stopwatch(object):
 	so to read the elapsed time::
 
 	>>> watch.elapsed
-	datetime.timedelta(0, ...)
+	datetime.timedelta(...)
+	>>> watch.elapsed.seconds
+	0
 	"""
 	def __init__(self):
 		self.reset()
