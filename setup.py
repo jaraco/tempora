@@ -35,6 +35,7 @@ params = dict(
 	install_requires=[
 		'six',
 		'pytz',
+		'python-dateutil',
 	],
 	extras_require={
 		'testing': [

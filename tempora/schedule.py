@@ -12,6 +12,7 @@ import abc
 import bisect
 
 import pytz
+from dateutil import relativedelta as rd
 
 
 def now():
@@ -113,12 +114,41 @@ class PeriodicCommand(DelayedCommand):
         return cmd
 
     def __setattr__(self, key, value):
-        if key == 'delay' and not value > datetime.timedelta():
+        if key == 'delay' and not value > ZeroDelta():
             raise ValueError(
                 "A PeriodicCommand must have a positive, "
                 "non-zero delay."
             )
         super(PeriodicCommand, self).__setattr__(key, value)
+
+
+class ZeroDelta(object):
+    """
+    An object that compares as zero for timedelta and
+    relativedelta objects.
+
+    >>> ZeroDelta() < datetime.timedelta(-1)
+    False
+    >>> ZeroDelta() < datetime.timedelta()
+    False
+    >>> ZeroDelta() < datetime.timedelta(1)
+    True
+
+    >>> ZeroDelta() < rd.relativedelta(days=-1)
+    False
+    >>> ZeroDelta() < rd.relativedelta()
+    False
+    >>> ZeroDelta() < rd.relativedelta(days=1)
+    True
+    """
+    def __lt__(self, other):
+        try:
+            return datetime.timedelta() < other
+        except TypeError:
+            return (
+                abs(other) == other
+                and other != rd.relativedelta()
+            )
 
 
 class PeriodicCommandFixedDelay(PeriodicCommand):
@@ -143,7 +173,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         """
         Schedule a command to run at a specific time each day.
         """
-        daily = datetime.timedelta(days=1)
+        daily = rd.relativedelta(days=1)
         # convert when to the next datetime matching this time
         when = datetime.datetime.combine(datetime.date.today(), at)
         if when < now():
