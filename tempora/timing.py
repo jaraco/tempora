@@ -7,8 +7,10 @@ import functools
 import numbers
 import time
 
+__metaclass__ = type
 
-class Stopwatch(object):
+
+class Stopwatch:
 	"""
 	A simple stopwatch which starts automatically.
 
@@ -71,7 +73,7 @@ class Stopwatch(object):
 		self.stop()
 
 
-class IntervalGovernor(object):
+class IntervalGovernor:
 	"""
 	Decorate a function to only allow it to be called once per
 	min_interval. Otherwise, it returns None.
@@ -127,7 +129,7 @@ class Timer(Stopwatch):
 		return self.split().total_seconds() > self.target
 
 
-class BackoffDelay(object):
+class BackoffDelay:
 	"""
 	Exponential backoff delay.
 
