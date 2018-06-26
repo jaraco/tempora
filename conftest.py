@@ -15,3 +15,12 @@ def remove_parse_timedelta(items):
 		return
 	names = list(map(operator.attrgetter('name'), items))
 	del items[names.index('tempora.parse_timedelta')]
+
+
+collect_ignore = []
+
+
+if sys.version_info < (3, 2):
+	collect_ignore.extend([
+		'tempora/utc.py',
+	])

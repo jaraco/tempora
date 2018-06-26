@@ -1,3 +1,9 @@
+1.12
+====
+
+Added UTC module (Python 3 only), inspired by the
+`utc project <https://pypi.org/project/utc>`_.
+
 1.11
 ====
 
