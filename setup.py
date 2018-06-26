@@ -2,16 +2,11 @@
 
 # Project skeleton maintained at https://github.com/jaraco/skeleton
 
-import io
-
 import setuptools
-
-with io.open('README.rst', encoding='utf-8') as readme:
-	long_description = readme.read()
 
 name = 'tempora'
 description = 'Objects and routines pertaining to date and time (tempora)'
-nspkg_technique = 'managed'
+nspkg_technique = 'native'
 """
 Does this package use "native" namespace packages or
 pkg_resources "managed" namespace packages?
@@ -23,7 +18,6 @@ params = dict(
 	author="Jason R. Coombs",
 	author_email="jaraco@jaraco.com",
 	description=description or name,
-	long_description=long_description,
 	url="https://github.com/jaraco/" + name,
 	packages=setuptools.find_packages(),
 	include_package_data=True,
