@@ -1,7 +1,10 @@
 1.13
 ====
 
-Added ``.reset`` method to BackoffDelay.
+Enhancements to BackoffDelay:
+
+ - Added ``.reset`` method.
+ - Made iterable to retrieve delay values.
 
 1.12
 ====

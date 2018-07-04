@@ -172,6 +172,16 @@ class BackoffDelay:
 	>>> bd.delay
 	0.01
 
+	Iterate on the object to retrieve/advance the delay values.
+
+	>>> next(bd)
+	0.01
+	>>> next(bd)
+	0.015
+	>>> import itertools
+	>>> tuple(itertools.islice(bd, 3))
+	(0.015, 0.015, 0.015)
+
 	Limit may be a callable taking a number and returning
 	the limited number.
 
@@ -225,7 +235,17 @@ class BackoffDelay:
 		self.jitter = jitter
 
 	def __call__(self):
-		time.sleep(self.delay)
+		time.sleep(next(self))
+
+	def __next__(self):
+		delay = self.delay
+		self.bump()
+		return delay
+
+	def __iter__(self):
+		return self
+
+	def bump(self):
 		self.delay = self.limit(self.delay * self.factor + self.jitter())
 
 	def reset(self):
