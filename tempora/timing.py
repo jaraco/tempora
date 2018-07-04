@@ -7,6 +7,8 @@ import functools
 import numbers
 import time
 
+import six
+
 import jaraco.functools
 
 
@@ -132,7 +134,7 @@ class Timer(Stopwatch):
 		return self.split().total_seconds() > self.target
 
 
-class BackoffDelay:
+class BackoffDelay(six.Iterator):
 	"""
 	Exponential backoff delay.
 
