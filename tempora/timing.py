@@ -187,15 +187,17 @@ class BackoffDelay:
 
 	>>> at_least_one = lambda n: max(n, 1)
 	>>> bd = BackoffDelay(delay=0.01, factor=2, limit=at_least_one)
-	>>> bd()
-	>>> bd.delay
+	>>> next(bd)
+	0.01
+	>>> next(bd)
 	1
 
 	Pass a jitter to add or subtract seconds to the delay.
 
 	>>> bd = BackoffDelay(jitter=0.01)
-	>>> bd()
-	>>> bd.delay
+	>>> next(bd)
+	0
+	>>> next(bd)
 	0.01
 
 	Jitter may be a callable. To supply a non-deterministic jitter
@@ -204,8 +206,9 @@ class BackoffDelay:
 	>>> import random
 	>>> jitter=functools.partial(random.uniform, -0.5, 0.5)
 	>>> bd = BackoffDelay(jitter=jitter)
-	>>> bd()
-	>>> 0 <= bd.delay <= 0.5
+	>>> next(bd)
+	0
+	>>> 0 <= next(bd) <= 0.5
 	True
 	"""
 
