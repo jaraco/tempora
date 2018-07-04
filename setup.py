@@ -29,6 +29,7 @@ params = dict(
 	install_requires=[
 		'six',
 		'pytz',
+		'jaraco.functools>=1.20',
 	],
 	extras_require={
 		'testing': [

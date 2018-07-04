@@ -7,6 +7,9 @@ import functools
 import numbers
 import time
 
+import jaraco.functools
+
+
 __metaclass__ = type
 
 
@@ -163,6 +166,12 @@ class BackoffDelay:
 	>>> bd.delay
 	0.015
 
+	To reset the backoff, simply call ``.reset()``:
+
+	>>> bd.reset()
+	>>> bd.delay
+	0.01
+
 	Limit may be a callable taking a number and returning
 	the limited number.
 
@@ -198,6 +207,7 @@ class BackoffDelay:
 	jitter = 0
 	"Number or callable returning extra seconds to add to delay"
 
+	@jaraco.functools.save_method_args
 	def __init__(self, delay=0, factor=1, limit=float('inf'), jitter=0):
 		self.delay = delay
 		self.factor = factor
@@ -217,3 +227,7 @@ class BackoffDelay:
 	def __call__(self):
 		time.sleep(self.delay)
 		self.delay = self.limit(self.delay * self.factor + self.jitter())
+
+	def reset(self):
+		saved = self._saved___init__
+		self.__init__(*saved.args, **saved.kwargs)

@@ -1,3 +1,8 @@
+1.13
+====
+
+Added ``.reset`` method to BackoffDelay.
+
 1.12
 ====
 
