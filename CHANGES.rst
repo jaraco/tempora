@@ -1,3 +1,9 @@
+1.14
+====
+
+Package refresh, including use of declarative config in
+the package metadata.
+
 1.13
 ====
 
