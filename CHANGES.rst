@@ -1,3 +1,8 @@
+1.14.1
+======
+
+#7: Fix failing doctest in ``parse_timedelta``.
+
 1.14
 ====
 
