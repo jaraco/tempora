@@ -13,11 +13,6 @@ jobs:
     if: tag IS present
     python: *latest_py3
     before_script: skip
-    env:
-    - TWINE_USERNAME=jaraco
-    # TWINE_PASSWORD
-    - secure: cscsuuHe6Hy/6tHLQafGOdKscx/aYGXYZNjkgn66+ILXo42VyIBgAmMyxsABTvYwstsi8xIO3eTUoKYzkLU8ivD+Nl1qJgPAno1pjhKIFKpdAe7VpUQsI502+thYcQ044lPDMp/E4cqL12m/eizzgcEd6fJzjdulEETDlMOZJtZfysQofk8YUIEa3TwS+HnLTLUQdignsh1jbwgL8K70WWhHyKGn4d+kUqZF4MtKLJngH5FmNDLChOH45oUQ6TyzAZi0ij6cVMLV8j7crcea2XPbs8voMeHA9/YTZEoALCJIJML8XTczVgN/peALiv4AGtzWJ7RG4Il03yritvbfedgsiUZpEaZ05eP4cyuJ+7o7xkl3D3e2DW9UTO4yK34kCH1vdwoLCO4y5siV8RFIy+VOJcNH6BECoBxuWA50zim4JmRhod2MEDXCZhkxFP3QqvOtPwXqC/lcX8EXo7nOlnBohuw9ayM8lAvovrj9f7WJmu8oVjv7J9X7BRBgqEBIoifxRAeliAMRZb+7V0dw8oBwbI0MyEETbcvIwSz9OLnspImZ2imRsx11yy+AhB2lufPM9hLrWBIN4X7fon+t6oKQQyDfpC5znpsXzk9QFuxyin1WlERPRXvCoCBXhMOyTxtz3VsIY356kx2YlH6569FnCpaWJCAFP6BG6t2Ia4c=
-    - TOX_TESTENV_PASSENV="TWINE_USERNAME TWINE_PASSWORD"
     script: tox -e release
 
 cache: pip
