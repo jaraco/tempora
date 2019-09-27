@@ -140,7 +140,7 @@ def strftime(fmt, t):
         ('%s', '%03d' % (t.microsecond // 1000)),
         ('%u', '%03d' % (t.microsecond % 1000)),
     )
-    if sys.version_info < (3, 3):
+    if sys.version_info < (3, 3):  # pragma: nocover
         try:
             year = t.year
             if year < 1900:
