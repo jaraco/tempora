@@ -429,6 +429,12 @@ def parse_timedelta(str):
 
 
 def _parse_timedelta_part(part):
+    """
+    >>> _parse_timedelta_part('foo')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unable to parse 'foo' as a time delta
+    """
     match = re.match(r'(?P<value>[\d.]+) (?P<unit>\w+)', part)
     if not match:
         msg = "Unable to parse {part!r} as a time delta".format(**locals())
