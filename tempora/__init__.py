@@ -43,6 +43,11 @@ class Parser:
     Traceback (most recent call last):
         ...
     ValueError: More than one format string matched target 732.
+
+    >>> Parser(('%H',)).parse('22:21')
+    Traceback (most recent call last):
+    ...
+    ValueError: No format strings matched the target 22:21.
     """
 
     formats = ('%m/%d/%Y', '%m/%d/%y', '%Y-%m-%d', '%d-%b-%Y', '%d-%b-%y')
