@@ -100,12 +100,37 @@ hours_per_month = hours_per_day * days_per_year / 12
 
 
 def strftime(fmt, t):
-    """A class to replace the strftime in datetime package or time module.
+    """
+    Enhanced strftime.
+
     Identical to strftime behavior in those modules except supports any
     year.
-    Also supports datetime.datetime times.
-    Also supports milliseconds using %s
-    Also supports microseconds using %u"""
+
+    >>> strftime('%Y', datetime.datetime(1890, 1, 1))
+    '1890'
+    >>> strftime('%Y', datetime.datetime(900, 1, 1))
+    '0900'
+
+    Supports time.struct_time, tuples, and datetime.datetime objects.
+
+    >>> strftime('%Y-%m-%d', (1976, 5, 7))
+    '1976-05-07'
+
+    Also supports milliseconds using %s.
+
+    >>> strftime('%s', datetime.time(microsecond=20000))
+    '020'
+
+    Also supports microseconds (3 digits) using %u
+
+    >>> strftime('%u', datetime.time(microsecond=123456))
+    '456'
+
+    Also supports microseconds (6 digits) using %f
+
+    >>> strftime('%f', datetime.time(microsecond=23456))
+    '023456'
+    """
     if isinstance(t, (time.struct_time, tuple)):
         t = datetime.datetime(*t[:6])
     assert isinstance(t, (datetime.datetime, datetime.time, datetime.date))
