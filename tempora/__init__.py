@@ -9,6 +9,7 @@ import time
 import re
 import numbers
 import functools
+import sys
 
 import six
 
@@ -134,18 +135,18 @@ def strftime(fmt, t):
     if isinstance(t, (time.struct_time, tuple)):
         t = datetime.datetime(*t[:6])
     assert isinstance(t, (datetime.datetime, datetime.time, datetime.date))
-    try:
-        year = t.year
-        if year < 1900:
-            t = t.replace(year=1900)
-    except AttributeError:
-        year = 1900
     subs = (
-        ('%Y', '%04d' % year),
-        ('%y', '%02d' % (year % 100)),
         ('%s', '%03d' % (t.microsecond // 1000)),
         ('%u', '%03d' % (t.microsecond % 1000)),
     )
+    if sys.version_info < (3, 3):
+        try:
+            year = t.year
+            if year < 1900:
+                t = t.replace(year=1900)
+        except AttributeError:
+            year = 1900
+        subs += (('%Y', '%04d' % year), ('%y', '%02d' % (year % 100)))
 
     def doSub(s, sub):
         return s.replace(*sub)
