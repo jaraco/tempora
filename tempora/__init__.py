@@ -240,6 +240,16 @@ def datetime_round(dt, period, start=None):
 def get_nearest_year_for_day(day):
     """
     Returns the nearest year to now inferred from a Julian date.
+
+    >>> freezer = getfixture('freezer')
+    >>> freezer.move_to('2019-05-20')
+    >>> get_nearest_year_for_day(20)
+    2019
+    >>> get_nearest_year_for_day(340)
+    2018
+    >>> freezer.move_to('2019-12-15')
+    >>> get_nearest_year_for_day(20)
+    2020
     """
     now = time.gmtime()
     result = now.tm_year
