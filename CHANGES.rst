@@ -1,3 +1,8 @@
+2.0
+===
+
+* Removed DatetimeConstructor.
+
 1.14.1
 ======
 
