@@ -365,18 +365,32 @@ def divide_timedelta_float(td, divisor):
     return datetime.timedelta(*dsm)
 
 
-def calculate_prorated_values():
-    """
-    A utility function to prompt for a rate (a string in units per
-    unit time), and return that same rate for various time periods.
-    """
+def calculate_prorated_values():  # pragma: nocover
     rate = six.moves.input("Enter the rate (3/hour, 50/month)> ")
+    for period, value in _prorated_values(rate):
+        print("per {period}: {value}".format(**locals()))
+
+
+def _prorated_values(rate):
+    """
+    Given a rate (a string in units per unit time), and return that same
+    rate for various time periods.
+
+    >>> for period, value in _prorated_values('20/hour'):
+    ...     print('{period}: {value:0.3f}'.format(**locals()))
+    minute: 0.333
+    hour: 20.000
+    day: 480.000
+    month: 14609.694
+    year: 175316.333
+
+    """
     res = re.match(r'(?P<value>[\d.]+)/(?P<period>\w+)$', rate).groupdict()
     value = float(res['value'])
     value_per_second = value / get_period_seconds(res['period'])
     for period in ('minute', 'hour', 'day', 'month', 'year'):
         period_value = value_per_second * get_period_seconds(period)
-        print("per {period}: {period_value}".format(**locals()))
+        yield period, period_value
 
 
 def parse_timedelta(str):
