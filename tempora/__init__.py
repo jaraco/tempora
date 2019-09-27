@@ -463,7 +463,7 @@ def divide_timedelta(td1, td2):
     """
     try:
         return td1 / td2
-    except TypeError:
+    except TypeError:  # pragma: nocover
         # Python 3.2 gets division
         # http://bugs.python.org/issue2706
         return td1.total_seconds() / td2.total_seconds()
@@ -484,6 +484,9 @@ def date_range(start=None, stop=None, step=None):
     True
     >>> datetime.datetime(2005,12,25) in my_range
     False
+    >>> from_now = date_range(stop=datetime.datetime(2099, 12, 31))
+    >>> next(from_now)
+    datetime.datetime(...)
     """
     if step is None:
         step = datetime.timedelta(days=1)
