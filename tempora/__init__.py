@@ -6,6 +6,7 @@ import re
 import numbers
 import functools
 import warnings
+import contextlib
 
 from jaraco.functools import once
 
@@ -143,7 +144,8 @@ def strftime(fmt, t):
         ('%u', '%03d' % (t.microsecond % 1000)),
     )
     if _needs_year_help():  # pragma: nocover
-        subs += (('%Y', '%04d' % t.year),)
+        with contextlib.suppress(AttributeError):
+            subs += (('%Y', '%04d' % t.year),)
 
     def doSub(s, sub):
         return s.replace(*sub)
