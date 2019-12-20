@@ -107,6 +107,7 @@ class TestScheduler:
         sched.add(cmd)
         sched.run_pending()
         target.assert_called_once()
+        assert not sched.queue
 
     def test_callback_scheduler(self):
         callback = mock.MagicMock()
@@ -116,3 +117,18 @@ class TestScheduler:
         sched.add(cmd)
         sched.run_pending()
         callback.assert_called_once_with(target)
+
+    def test_periodic_command(self):
+        sched = schedule.InvokeScheduler()
+        target = mock.MagicMock()
+        cmd = schedule.PeriodicCommand.at_time(time.time() + 0.1, target)
+        sched.add(cmd)
+        sched.run_pending()
+        target.assert_not_called()
+        time.sleep(0.1)
+        sched.run_pending()
+        assert sched.queue
+        target.assert_called_once()
+        time.sleep(0.1)
+        sched.run_pending()
+        assert target.call_count == 2
