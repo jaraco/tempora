@@ -3,6 +3,7 @@ import functools
 import numbers
 import time
 import collections.abc
+import contextlib
 
 import jaraco.functools
 
@@ -46,7 +47,7 @@ class Stopwatch:
 
     def reset(self):
         self.elapsed = datetime.timedelta(0)
-        if hasattr(self, 'start_time'):
+        with contextlib.suppress(AttributeError):
             del self.start_time
 
     def start(self):
@@ -75,6 +76,10 @@ class IntervalGovernor:
     """
     Decorate a function to only allow it to be called once per
     min_interval. Otherwise, it returns None.
+
+    >>> gov = IntervalGovernor(30)
+    >>> gov.min_interval
+    datetime.timedelta(seconds=30)
     """
 
     def __init__(self, min_interval):
@@ -112,8 +117,16 @@ class Timer(Stopwatch):
         self.target = self._accept(target)
         super(Timer, self).__init__()
 
-    def _accept(self, target):
-        "Accept None or ∞ or datetime or numeric for target"
+    @staticmethod
+    def _accept(target):
+        """
+        Accept None or ∞ or datetime or numeric for target
+
+        >>> Timer._accept(datetime.timedelta(seconds=30))
+        30.0
+        >>> Timer._accept(None)
+        inf
+        """
         if isinstance(target, datetime.timedelta):
             target = target.total_seconds()
 
