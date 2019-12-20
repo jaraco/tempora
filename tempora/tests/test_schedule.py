@@ -8,8 +8,6 @@ import freezegun
 
 from tempora import schedule
 
-__metaclass__ = type
-
 
 @pytest.fixture
 def naive_times(monkeypatch):
@@ -18,12 +16,6 @@ def naive_times(monkeypatch):
 
 
 do_nothing = type(None)
-try:
-    do_nothing()
-except TypeError:
-    # Python 2 compat
-    def do_nothing():
-        return None
 
 
 def test_delayed_command_order():
