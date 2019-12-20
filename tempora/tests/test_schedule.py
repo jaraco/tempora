@@ -107,3 +107,12 @@ class TestScheduler:
         sched.add(cmd)
         sched.run_pending()
         target.assert_called_once()
+
+    def test_callback_scheduler(self):
+        callback = mock.MagicMock()
+        sched = schedule.CallbackScheduler(callback)
+        target = mock.MagicMock()
+        cmd = schedule.DelayedCommand.after(0, target)
+        sched.add(cmd)
+        sched.run_pending()
+        callback.assert_called_once_with(target)

@@ -197,7 +197,7 @@ class CallbackScheduler(Scheduler):
     """
 
     def __init__(self, dispatch):
-        super(CallbackScheduler, self).__init__()
+        super().__init__()
         self.dispatch = dispatch
 
     def run(self, command):
