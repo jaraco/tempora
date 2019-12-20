@@ -1,11 +1,7 @@
-v3.0.0
+v2.0.0
 ======
 
-Require Python 3.6 or later.
-
-2.0
-===
-
+* Require Python 3.6 or later.
 * Removed DatetimeConstructor.
 
 1.14.1
