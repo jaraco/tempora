@@ -1,8 +1,4 @@
-# -*- coding: UTF-8 -*-
-
 "Objects and routines pertaining to date and time (tempora)"
-
-from __future__ import division, unicode_literals
 
 import datetime
 import time
@@ -11,10 +7,6 @@ import numbers
 import functools
 import sys
 import warnings
-
-import six
-
-__metaclass__ = type
 
 
 class Parser:
@@ -290,7 +282,7 @@ def get_period_seconds(period):
     ...
     ValueError: period not in (second, minute, hour, day, month, year)
     """
-    if isinstance(period, six.string_types):
+    if isinstance(period, str):
         try:
             name = 'seconds_per_' + period.lower()
             result = globals()[name]
@@ -331,7 +323,7 @@ def get_date_format_string(period):
     """
     # handle the special case of 'month' which doesn't have
     #  a static interval in seconds
-    if isinstance(period, six.string_types) and period.lower() == 'month':
+    if isinstance(period, str) and period.lower() == 'month':
         return '%Y-%m'
     file_period_secs = get_period_seconds(period)
     format_pieces = ('%Y', '-%m-%d', ' %H', '-%M', '-%S')
@@ -366,7 +358,7 @@ def divide_timedelta_float(td, divisor):
 
 
 def calculate_prorated_values():  # pragma: nocover
-    rate = six.moves.input("Enter the rate (3/hour, 50/month)> ")
+    rate = input("Enter the rate (3/hour, 50/month)> ")
     for period, value in _prorated_values(rate):
         print("per {period}: {value}".format(**locals()))
 

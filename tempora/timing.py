@@ -1,18 +1,10 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals, absolute_import
-
 import datetime
 import functools
 import numbers
 import time
-
-import six
+import collections.abc
 
 import jaraco.functools
-
-
-__metaclass__ = type
 
 
 class Stopwatch:
@@ -135,7 +127,7 @@ class Timer(Stopwatch):
         return self.split().total_seconds() > self.target
 
 
-class BackoffDelay(six.Iterator):
+class BackoffDelay(collections.abc.Iterator):
     """
     Exponential backoff delay.
 
