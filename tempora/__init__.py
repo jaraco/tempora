@@ -142,7 +142,7 @@ def strftime(fmt, t):
         ('%s', '%03d' % (t.microsecond // 1000)),
         ('%u', '%03d' % (t.microsecond % 1000)),
     )
-    if _needs_year_help():
+    if _needs_year_help():  # pragma: nocover
         subs += (('%Y', '%04d' % t.year),)
 
     def doSub(s, sub):
