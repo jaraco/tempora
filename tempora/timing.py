@@ -78,8 +78,8 @@ class IntervalGovernor:
     min_interval. Otherwise, it returns None.
 
     >>> gov = IntervalGovernor(30)
-    >>> gov.min_interval
-    datetime.timedelta(seconds=30)
+    >>> gov.min_interval.total_seconds()
+    30.0
     """
 
     def __init__(self, min_interval):

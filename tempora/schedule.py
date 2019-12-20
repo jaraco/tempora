@@ -131,6 +131,11 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
 
     @classmethod
     def at_time(cls, at, delay, target):
+        """
+        >>> cmd = PeriodicCommandFixedDelay.at_time(0, 30, None)
+        >>> cmd.delay.total_seconds()
+        30.0
+        """
         at = cls._from_timestamp(at)
         cmd = cls.from_datetime(at)
         if isinstance(delay, numbers.Number):
@@ -143,6 +148,12 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
     def daily_at(cls, at, target):
         """
         Schedule a command to run at a specific time each day.
+
+        >>> from tempora import utc
+        >>> noon = utc.time(12, 0)
+        >>> cmd = PeriodicCommandFixedDelay.daily_at(noon, None)
+        >>> cmd.delay.total_seconds()
+        86400.0
         """
         daily = datetime.timedelta(days=1)
         # convert when to the next datetime matching this time
