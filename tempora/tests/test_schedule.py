@@ -1,6 +1,7 @@
 import time
 import random
 import datetime
+from unittest import mock
 
 import pytest
 import pytz
@@ -96,3 +97,13 @@ class TestTimezones:
         next_ = cmd.next()
         assert naive(next_) == datetime.datetime(2018, 3, 11, 9, 0, 0)
         assert next_ - cmd == datetime.timedelta(hours=23)
+
+
+class TestScheduler:
+    def test_invoke_scheduler(self):
+        sched = schedule.InvokeScheduler()
+        target = mock.MagicMock()
+        cmd = schedule.DelayedCommand.after(0, target)
+        sched.add(cmd)
+        sched.run_pending()
+        target.assert_called_once()
