@@ -7,6 +7,8 @@ import numbers
 import functools
 import warnings
 
+from jaraco.functools import once
+
 
 class Parser:
     """
@@ -92,6 +94,15 @@ seconds_per_month = seconds_per_year / 12
 hours_per_month = hours_per_day * days_per_year / 12
 
 
+@once
+def _needs_year_help():
+    """
+    Some versions of Python render %Y with only three characters :(
+    https://bugs.python.org/issue39103
+    """
+    return len(datetime.date(900, 1, 1).strftime('%Y')) != 4
+
+
 def strftime(fmt, t):
     """
     Enhanced strftime.
@@ -131,6 +142,8 @@ def strftime(fmt, t):
         ('%s', '%03d' % (t.microsecond // 1000)),
         ('%u', '%03d' % (t.microsecond % 1000)),
     )
+    if _needs_year_help():
+        subs += (('%Y', '%04d' % t.year),)
 
     def doSub(s, sub):
         return s.replace(*sub)
