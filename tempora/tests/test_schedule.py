@@ -9,12 +9,6 @@ import freezegun
 from tempora import schedule
 
 
-@pytest.fixture
-def naive_times(monkeypatch):
-    monkeypatch.setattr('irc.schedule.from_timestamp', datetime.datetime.fromtimestamp)
-    monkeypatch.setattr('irc.schedule.now', datetime.datetime.now)
-
-
 do_nothing = type(None)
 
 
