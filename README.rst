@@ -3,6 +3,9 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/tempora.svg
 
+.. image:: https://dev.azure.com/jaraco/tempora/_apis/build/status/jaraco.tempora?branchName=master
+   :target: https://dev.azure.com/jaraco/tempora/_build/latest?definitionId=1&branchName=master
+
 .. image:: https://img.shields.io/travis/jaraco/tempora/master.svg
    :target: https://travis-ci.org/jaraco/tempora
 
