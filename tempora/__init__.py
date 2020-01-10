@@ -146,9 +146,9 @@ def strftime(fmt, t):
     >>> strftime('%s', datetime.time(microsecond=20000))
     '020'
 
-    Also supports microseconds (3 digits) using %u
+    Also supports microseconds (3 digits) using %µ
 
-    >>> strftime('%u', datetime.time(microsecond=123456))
+    >>> strftime('%µ', datetime.time(microsecond=123456))
     '456'
 
     Also supports microseconds (6 digits) using %f
@@ -176,6 +176,7 @@ def strftime(fmt, t):
     subs = (
         ('%s', '%03d' % (t.microsecond // 1000)),
         ('%u', '%03d' % (t.microsecond % 1000)),
+        ('%µ', '%03d' % (t.microsecond % 1000)),
     )
     if _needs_year_help():  # pragma: nocover
         with contextlib.suppress(AttributeError):
