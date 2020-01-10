@@ -1,3 +1,8 @@
+v2.0.1
+======
+
+#9: Fixed error when date object is passed to ``strftime``.
+
 v2.0.0
 ======
 
