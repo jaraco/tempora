@@ -144,10 +144,12 @@ def strftime(fmt, t):
     if isinstance(t, (time.struct_time, tuple)):
         t = datetime.datetime(*t[:6])
     assert isinstance(t, (datetime.datetime, datetime.time, datetime.date))
-    subs = (
-        ('%s', '%03d' % (t.microsecond // 1000)),
-        ('%u', '%03d' % (t.microsecond % 1000)),
-    )
+    subs = ()
+    with contextlib.suppress(AttributeError):
+        subs += (
+            ('%s', '%03d' % (t.microsecond // 1000)),
+            ('%u', '%03d' % (t.microsecond % 1000)),
+        )
     if _needs_year_help():  # pragma: nocover
         with contextlib.suppress(AttributeError):
             subs += (('%Y', '%04d' % t.year),)
