@@ -121,6 +121,11 @@ def strftime(fmt, t):
     >>> strftime('%Y-%m-%d', (1976, 5, 7))
     '1976-05-07'
 
+    Also supports date objects
+
+    >>> strftime('%Y', datetime.date(1976, 5, 7))
+    '1976'
+
     Also supports milliseconds using %s.
 
     >>> strftime('%s', datetime.time(microsecond=20000))
