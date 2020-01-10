@@ -1,14 +1,14 @@
 v2.1.0
 ======
 
-#9: Fixed error when date object is passed to ``strftime``.
-#11: ``strftime`` now honors upstream expectation of
-     rendering date values on time objects and vice versa.
-#10: ``strftime`` now honors ``%µ`` for rendering just
-     the "microseconds" as ``%u`` supported previously.
-     In a future, backward-incompatible release, the
-     ``%u`` behavior will revert to the behavior as found
-     in stdlib.
+- #9: Fixed error when date object is passed to ``strftime``.
+- #11: ``strftime`` now honors upstream expectation of
+  rendering date values on time objects and vice versa.
+- #10: ``strftime`` now honors ``%µ`` for rendering just
+  the "microseconds" as ``%u`` supported previously.
+  In a future, backward-incompatible release, the
+  ``%u`` behavior will revert to the behavior as found
+  in stdlib.
 
 v2.0.0
 ======
