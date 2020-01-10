@@ -120,10 +120,12 @@ def ensure_datetime(ob):
 
 def strftime(fmt, t):
     """
-    Enhanced strftime.
+    Portable strftime.
 
-    Identical to strftime behavior in those modules except supports any
-    year.
+    In the stdlib, strftime has `known portability problems
+    <https://bugs.python.org/issue13305>`_. This function
+    aims to smooth over those issues and provide a
+    consistent experience across the major platforms.
 
     >>> strftime('%Y', datetime.datetime(1890, 1, 1))
     '1890'
@@ -150,6 +152,15 @@ def strftime(fmt, t):
     >>> strftime('%µ', datetime.time(microsecond=123456))
     '456'
 
+    Currently, microseconds are also rendered when %u
+    is indicated, but this behavior is deprecated and will
+    revert to the stdlib behavior in the future.
+
+    >>> strftime('%u', datetime.date(1976, 5, 7))
+    '000'
+
+    (should be '4')
+
     Also supports microseconds (6 digits) using %f
 
     >>> strftime('%f', datetime.time(microsecond=23456))
@@ -159,7 +170,7 @@ def strftime(fmt, t):
 
     >>> strftime('%f', datetime.date(1976, 1, 1))
     '000000'
-    >>> strftime('%u', datetime.date(1976, 1, 1))
+    >>> strftime('%µ', datetime.date(1976, 1, 1))
     '000'
     >>> strftime('%s', datetime.date(1976, 1, 1))
     '000'
