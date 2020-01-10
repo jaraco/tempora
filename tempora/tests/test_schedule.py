@@ -64,6 +64,15 @@ class TestCommands:
         two_days_from_now = day_from_now + daily
         assert day_from_now < next_cmd < two_days_from_now
 
+    @pytest.mark.parametrize("hour", range(24))
+    def test_command_at_noon_distant_local(self, hour):
+        """
+        Run test_command_at_noon, but with the local timezone
+        more than 12 hours away from UTC.
+        """
+        with freezegun.freeze_time(f"2020-01-10 {hour:02}:01", tz_offset=-14):
+            self.test_command_at_noon()
+
 
 class TestTimezones:
     def test_alternate_timezone_west(self):
