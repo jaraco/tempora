@@ -1,7 +1,9 @@
-v2.0.1
+v3.0.0
 ======
 
 #9: Fixed error when date object is passed to ``strftime``.
+#11: ``strftime`` now honors upstream expectation of
+     rendering date values on time objects and vice versa.
 
 v2.0.0
 ======

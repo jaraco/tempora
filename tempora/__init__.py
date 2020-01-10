@@ -104,6 +104,21 @@ def _needs_year_help():
     return len(datetime.date(900, 1, 1).strftime('%Y')) != 4
 
 
+def ensure_datetime(ob):
+    """
+    Given a datetime or date or time object from the ``datetime``
+    module, always return a datetime using default values.
+    """
+    if isinstance(ob, datetime.datetime):
+        return ob
+    date = time = ob
+    if isinstance(ob, datetime.date):
+        time = datetime.time()
+    if isinstance(ob, datetime.time):
+        date = datetime.date(1900, 1, 1)
+    return datetime.datetime.combine(date, time)
+
+
 def strftime(fmt, t):
     """
     Enhanced strftime.
@@ -140,16 +155,28 @@ def strftime(fmt, t):
 
     >>> strftime('%f', datetime.time(microsecond=23456))
     '023456'
+
+    Even supports time values on date objects (discouraged):
+
+    >>> strftime('%f', datetime.date(1976, 1, 1))
+    '000000'
+    >>> strftime('%u', datetime.date(1976, 1, 1))
+    '000'
+    >>> strftime('%s', datetime.date(1976, 1, 1))
+    '000'
+
+    And vice-versa:
+
+    >>> strftime('%Y', datetime.time())
+    '1900'
     """
     if isinstance(t, (time.struct_time, tuple)):
         t = datetime.datetime(*t[:6])
-    assert isinstance(t, (datetime.datetime, datetime.time, datetime.date))
-    subs = ()
-    with contextlib.suppress(AttributeError):
-        subs += (
-            ('%s', '%03d' % (t.microsecond // 1000)),
-            ('%u', '%03d' % (t.microsecond % 1000)),
-        )
+    t = ensure_datetime(t)
+    subs = (
+        ('%s', '%03d' % (t.microsecond // 1000)),
+        ('%u', '%03d' % (t.microsecond % 1000)),
+    )
     if _needs_year_help():  # pragma: nocover
         with contextlib.suppress(AttributeError):
             subs += (('%Y', '%04d' % t.year),)
