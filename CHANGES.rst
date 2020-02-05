@@ -1,3 +1,9 @@
+v2.1.1
+======
+
+- #8: Fixed error in ``PeriodicCommandFixedDelay.daily_at``
+  when timezone is more than 12 hours from UTC.
+
 v2.1.0
 ======
 
