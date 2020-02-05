@@ -158,7 +158,8 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         daily = datetime.timedelta(days=1)
         # convert when to the next datetime matching this time
         when = datetime.datetime.combine(datetime.date.today(), at)
-        if when < now():
+        when -= daily
+        while when < now():
             when += daily
         return cls.at_time(cls._localize(when), daily, target)
 
