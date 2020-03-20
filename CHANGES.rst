@@ -1,3 +1,10 @@
+v3.0.0
+======
+
+- #10: ``strftime`` now reverts to the stdlib behavior for
+  ``%u``. Use tempora 2.1 or later and the ``%µ`` for
+  microseconds.
+
 v2.1.1
 ======
 

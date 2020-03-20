@@ -152,14 +152,11 @@ def strftime(fmt, t):
     >>> strftime('%µ', datetime.time(microsecond=123456))
     '456'
 
-    Currently, microseconds are also rendered when %u
-    is indicated, but this behavior is deprecated and will
-    revert to the stdlib behavior in the future.
+    Historically, %u was used for microseconds, but now
+    it honors the value rendered by stdlib.
 
     >>> strftime('%u', datetime.date(1976, 5, 7))
-    '000'
-
-    (should be '4')
+    '5'
 
     Also supports microseconds (6 digits) using %f
 
@@ -185,7 +182,6 @@ def strftime(fmt, t):
     t = ensure_datetime(t)
     subs = (
         ('%s', '%03d' % (t.microsecond // 1000)),
-        ('%u', '%03d' % (t.microsecond % 1000)),
         ('%µ', '%03d' % (t.microsecond % 1000)),
     )
     if _needs_year_help():  # pragma: nocover
