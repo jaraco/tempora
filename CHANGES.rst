@@ -7,7 +7,9 @@ v4.0.0
   on the result.
 - Deprecated ``divide_timedelta`` and ``divide_timedelta_float``
   now that Python supports this functionality natively.
-
+- Deprecated ``Parser`` class. The
+  `dateutil.parser <https://dateutil.readthedocs.io/en/stable/parser.html>`_
+  provides more sophistication.
 
 v3.0.0
 ======

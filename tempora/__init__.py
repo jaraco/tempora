@@ -12,6 +12,8 @@ from jaraco.functools import once
 
 class Parser:
     """
+    *deprecated*
+
     Datetime parser: parses a date-time string using multiple possible
     formats.
 
@@ -49,6 +51,7 @@ class Parser:
     "some common default formats"
 
     def __init__(self, formats=None):
+        warnings.warn("Use dateutil.parser", DeprecationWarning)
         if formats:
             self.formats = formats
 
