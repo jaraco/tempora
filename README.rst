@@ -1,7 +1,10 @@
 .. image:: https://img.shields.io/pypi/v/tempora.svg
-   :target: https://pypi.org/project/tempora
+   :target: `PyPI link`_
 
 .. image:: https://img.shields.io/pypi/pyversions/tempora.svg
+   :target: `PyPI link`_
+
+.. _PyPI link: https://pypi.org/project/tempora
 
 .. image:: https://dev.azure.com/jaraco/tempora/_apis/build/status/jaraco.tempora?branchName=master
    :target: https://dev.azure.com/jaraco/tempora/_build/latest?definitionId=1&branchName=master
