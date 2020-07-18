@@ -5,7 +5,6 @@ import time
 import re
 import numbers
 import functools
-import warnings
 
 from jaraco.functools import once
 
@@ -195,20 +194,6 @@ def strftime(fmt, t):
 
     fmt = '%%'.join(map(doSubs, fmt.split('%%')))
     return t.strftime(fmt)
-
-
-def strptime(s, fmt, tzinfo=None):
-    """
-    A function to replace strptime in the time module.  Should behave
-    identically to the strptime function except it returns a datetime.datetime
-    object instead of a time.struct_time object.
-    Also takes an optional tzinfo parameter which is a time zone info object.
-
-    >>> strptime('2019-09-20', '%Y-%m-%d')
-    datetime.datetime(2019, 9, 20, 0, 0)
-    """
-    warnings.warn("Use datetime.datetime.strptime", DeprecationWarning)
-    return datetime.datetime.strptime(s, fmt).replace(tzinfo=tzinfo)
 
 
 def datetime_mod(dt, period, start=None):

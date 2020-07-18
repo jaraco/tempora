@@ -1,3 +1,11 @@
+v4.0.0
+======
+
+- Removed ``strptime`` function in favor of
+  `datetime.datetime.strptime <https://docs.python.org/3/library/datetime.html#datetime.datetime.strptime>`_. If passing
+  a ``tzinfo`` parameter, instead invoke `.replace(tzinfo=...)`
+  on the result.
+
 v3.0.0
 ======
 
