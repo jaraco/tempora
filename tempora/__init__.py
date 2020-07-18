@@ -5,6 +5,7 @@ import time
 import re
 import numbers
 import functools
+import warnings
 
 from jaraco.functools import once
 
@@ -382,10 +383,8 @@ def divide_timedelta_float(td, divisor):
     >>> divide_timedelta_float(one_day, 2) == half_day
     True
     """
-    # td is comprised of days, seconds, microseconds
-    dsm = [getattr(td, attr) for attr in ('days', 'seconds', 'microseconds')]
-    dsm = map(lambda elem: elem / divisor, dsm)
-    return datetime.timedelta(*dsm)
+    warnings.warn("Use native division", DeprecationWarning)
+    return td / divisor
 
 
 def calculate_prorated_values():
@@ -495,12 +494,8 @@ def divide_timedelta(td1, td2):
     >>> divide_timedelta(one_hour, one_day) == 1 / 24
     True
     """
-    try:
-        return td1 / td2
-    except TypeError:  # pragma: nocover
-        # Python 3.2 gets division
-        # http://bugs.python.org/issue2706
-        return td1.total_seconds() / td2.total_seconds()
+    warnings.warn("Use native division", DeprecationWarning)
+    return td1 / td2
 
 
 def date_range(start=None, stop=None, step=None):

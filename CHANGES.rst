@@ -5,6 +5,9 @@ v4.0.0
   `datetime.datetime.strptime <https://docs.python.org/3/library/datetime.html#datetime.datetime.strptime>`_. If passing
   a ``tzinfo`` parameter, instead invoke `.replace(tzinfo=...)`
   on the result.
+- Deprecated ``divide_timedelta`` and ``divide_timedelta_float``
+  now that Python supports this functionality natively.
+
 
 v3.0.0
 ======
