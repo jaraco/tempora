@@ -6,21 +6,17 @@
 
 .. _PyPI link: https://pypi.org/project/tempora
 
-.. image:: https://dev.azure.com/jaraco/tempora/_apis/build/status/jaraco.tempora?branchName=master
-   :target: https://dev.azure.com/jaraco/tempora/_build/latest?definitionId=1&branchName=master
-
-.. image:: https://img.shields.io/travis/jaraco/tempora/master.svg
-   :target: https://travis-ci.org/jaraco/tempora
+.. image:: https://github.com/jaraco/tempora/workflows/Automated%20Tests/badge.svg
+   :target: https://github.com/jaraco/tempora/actions?query=workflow%3A%22Automated+Tests%22
+   :alt: Automated Tests
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
    :alt: Code style: Black
 
-.. .. image:: https://img.shields.io/appveyor/ci/jaraco/tempora/master.svg
-..    :target: https://ci.appveyor.com/project/jaraco/tempora/branch/master
-
 .. image:: https://readthedocs.org/projects/tempora/badge/?version=latest
    :target: https://tempora.readthedocs.io/en/latest/?badge=latest
+
 
 Objects and routines pertaining to date and time (tempora).
 
