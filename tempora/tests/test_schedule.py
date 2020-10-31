@@ -131,7 +131,7 @@ class TestScheduler:
     def test_periodic_command(self):
         sched = schedule.InvokeScheduler()
         target = mock.MagicMock()
-        cmd = schedule.PeriodicCommand.at_time(time.time() + 0.1, target)
+        cmd = schedule.PeriodicCommand.after(0.1, target)
         sched.add(cmd)
         sched.run_pending()
         target.assert_not_called()
