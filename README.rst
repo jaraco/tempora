@@ -26,5 +26,4 @@ Modules include:
    utilities and constants.
 - timing contains routines for measuring and profiling.
 - schedule contains an event scheduler.
-- utc contains routines for getting datetime-aware UTC values
-  (Python 3 only).
+- utc contains routines for getting datetime-aware UTC values.
