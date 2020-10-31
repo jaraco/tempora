@@ -131,14 +131,19 @@ class TestScheduler:
     def test_periodic_command(self):
         sched = schedule.InvokeScheduler()
         target = mock.MagicMock()
-        cmd = schedule.PeriodicCommand.after(0.1, target)
+
+        before = datetime.datetime.utcnow()
+
+        cmd = schedule.PeriodicCommand.after(10, target)
         sched.add(cmd)
         sched.run_pending()
         target.assert_not_called()
-        time.sleep(0.1)
-        sched.run_pending()
+
+        with freezegun.freeze_time(before + datetime.timedelta(seconds=15)):
+            sched.run_pending()
         assert sched.queue
         target.assert_called_once()
-        time.sleep(0.1)
-        sched.run_pending()
+
+        with freezegun.freeze_time(before + datetime.timedelta(seconds=25)):
+            sched.run_pending()
         assert target.call_count == 2
