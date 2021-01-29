@@ -24,11 +24,9 @@ def test_IntervalGovernor():
     func_under_test.assert_called_once_with('a')
 
 
+@pytest.mark.skipif("not hasattr(time, 'tzset')")
 @pytest.fixture
 def alt_tz(monkeypatch):
-    if not hasattr(time, 'tzset'):
-        pytest.skip("tzset not available")
-
     @contextlib.contextmanager
     def change():
         val = 'AEST-10AEDT-11,M10.5.0,M3.5.0'
