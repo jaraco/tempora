@@ -1,3 +1,8 @@
+v4.0.2
+======
+
+- Refreshed package metadata.
+
 v4.0.1
 ======
 
