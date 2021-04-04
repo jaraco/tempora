@@ -26,8 +26,7 @@ def test_IntervalGovernor():
 
 @pytest.fixture
 def alt_tz(monkeypatch):
-    if not hasattr(time, 'tzset'):
-        pytest.skip("tzset not available")
+    hasattr(time, 'tzset') or pytest.skip("tzset not available")
 
     @contextlib.contextmanager
     def change():
