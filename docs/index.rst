@@ -12,15 +12,24 @@ Welcome to |project| documentation!
     :undoc-members:
     :show-inheritance:
 
+Timing
+------
+
 .. automodule:: tempora.timing
     :members:
     :undoc-members:
     :show-inheritance:
 
+Schedule
+--------
+
 .. automodule:: tempora.schedule
     :members:
     :undoc-members:
     :show-inheritance:
+
+UTC
+---
 
 .. automodule:: tempora.utc
     :members:
