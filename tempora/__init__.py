@@ -474,6 +474,9 @@ def parse_timedelta(str):
     >>> parse_timedelta('1sec')
     datetime.timedelta(seconds=1)
 
+    >>> parse_timedelta('5min1sec')
+    datetime.timedelta(seconds=301)
+
     >>> parse_timedelta('1 ms')
     datetime.timedelta(microseconds=1000)
 
@@ -509,7 +512,7 @@ def parse_timedelta(str):
 
 
 def _parse_timedelta_nanos(str):
-    parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>\w+)?', str)
+    parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>[^\W\d_]+)?', str)
     chk_parts = _check_unmatched(parts, str)
     deltas = map(_parse_timedelta_part, chk_parts)
     return sum(deltas, _Saved_NS())

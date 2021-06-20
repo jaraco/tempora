@@ -1,3 +1,9 @@
+v4.1.1
+======
+
+- Fixed issue where digits were picked up in the unit when
+  adjacent to the last unit.
+
 v4.1.0
 ======
 
