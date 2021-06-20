@@ -459,26 +459,81 @@ def parse_timedelta(str):
     >>> diff = later.replace(year=now.year) - now
     >>> diff.seconds
     20940
+
+    >>> parse_timedelta('14 seconds foo')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unexpected 'foo'
+
+    Supports abbreviations:
+
+    >>> parse_timedelta('1s')
+    datetime.timedelta(seconds=1)
+
+    And supports the common colon-separated duration:
+
+    >>> parse_timedelta('14:00:35.362')
+    datetime.timedelta(seconds=50435, microseconds=362000)
+
+    TODO: Should this be 14 hours or 14 minutes?
+    >>> parse_timedelta('14:00')
+    datetime.timedelta(seconds=50400)
+
+    >>> parse_timedelta('14:00 minutes')
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot specify units with composite delta
     """
-    deltas = (_parse_timedelta_part(part.strip()) for part in str.split(','))
+    parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>\w+)?', str)
+    chk_parts = _check_unmatched(parts, str)
+    deltas = map(_parse_timedelta_part, chk_parts)
     return sum(deltas, datetime.timedelta())
 
 
-def _parse_timedelta_part(part):
+def _check_unmatched(matches, text):
     """
-    >>> _parse_timedelta_part('foo')
-    Traceback (most recent call last):
-    ...
-    ValueError: Unable to parse 'foo' as a time delta
+    Ensure no words appear in unmatched text.
     """
-    match = re.match(r'(?P<value>[\d.]+) (?P<unit>\w+)', part)
-    if not match:
-        msg = "Unable to parse {part!r} as a time delta".format(**locals())
-        raise ValueError(msg)
-    unit = match.group('unit').lower()
+
+    def check_unmatched(unmatched):
+        found = re.search(r'\w+', unmatched)
+        if found:
+            raise ValueError(f"Unexpected {found.group(0)!r}")
+
+    pos = 0
+    for match in matches:
+        check_unmatched(text[pos : match.start()])
+        yield match
+        pos = match.end()
+    check_unmatched(text[match.end() :])
+
+
+def _resolve_unit(raw_match):
+    if raw_match is None:
+        return 'second'
+    text = raw_match.lower()
+    if text == 's':
+        return 'second'
+    return text
+
+
+def _parse_timedelta_composite(raw_value, unit):
+    if unit != 'seconds':
+        raise ValueError("Cannot specify units with composite delta")
+    values = raw_value.split(':')
+    units = 'hours', 'minutes', 'seconds'
+    composed = ' '.join(f'{value} {unit}' for value, unit in zip(values, units))
+    return parse_timedelta(composed)
+
+
+def _parse_timedelta_part(match):
+    unit = _resolve_unit(match.group('unit'))
     if not unit.endswith('s'):
         unit += 's'
-    value = float(match.group('value'))
+    raw_value = match.group('value')
+    if ':' in raw_value:
+        return _parse_timedelta_composite(raw_value, unit)
+    value = float(raw_value)
     if unit == 'months':
         unit = 'years'
         value = value / 12

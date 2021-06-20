@@ -1,3 +1,8 @@
+v4.1.0
+======
+
+- Added support for more formats in ``parse_timedelta``.
+
 v4.0.2
 ======
 
