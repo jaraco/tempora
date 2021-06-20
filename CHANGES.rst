@@ -2,6 +2,9 @@ v4.1.0
 ======
 
 - Added support for more formats in ``parse_timedelta``.
+- #17: ``parse_timedelta`` now supports formats emitted by
+  ``timeit``, including honoring nanoseconds at the
+  microsecond resolution.
 
 v4.0.2
 ======

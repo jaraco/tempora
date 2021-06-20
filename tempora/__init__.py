@@ -6,6 +6,7 @@ import re
 import numbers
 import functools
 import warnings
+import contextlib
 
 from jaraco.functools import once
 
@@ -495,11 +496,23 @@ def parse_timedelta(str):
     Traceback (most recent call last):
     ...
     ValueError: Cannot specify units with composite delta
+
+    Nanoseconds get rounded to the nearest microsecond:
+
+    >>> parse_timedelta('600 ns')
+    datetime.timedelta(microseconds=1)
+
+    >>> parse_timedelta('.002 µs, 499 ns')
+    datetime.timedelta(microseconds=1)
     """
+    return _parse_timedelta_nanos(str).resolve()
+
+
+def _parse_timedelta_nanos(str):
     parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>\w+)?', str)
     chk_parts = _check_unmatched(parts, str)
     deltas = map(_parse_timedelta_part, chk_parts)
-    return sum(deltas, datetime.timedelta())
+    return sum(deltas, _Saved_NS())
 
 
 def _check_unmatched(matches, text):
@@ -538,6 +551,9 @@ _unit_lookup = {
     'w': 'week',
     'wk': 'week',
     'd': 'day',
+    'ns': 'nanosecond',
+    'nsec': 'nanosecond',
+    'nanos': 'nanosecond',
 }
 
 
@@ -554,7 +570,7 @@ def _parse_timedelta_composite(raw_value, unit):
     values = raw_value.split(':')
     units = 'hours', 'minutes', 'seconds'
     composed = ' '.join(f'{value} {unit}' for value, unit in zip(values, units))
-    return parse_timedelta(composed)
+    return _parse_timedelta_nanos(composed)
 
 
 def _parse_timedelta_part(match):
@@ -571,7 +587,54 @@ def _parse_timedelta_part(match):
     if unit == 'years':
         unit = 'days'
         value = value * days_per_year
-    return datetime.timedelta(**{unit: value})
+    return _Saved_NS.derive(unit, value)
+
+
+class _Saved_NS:
+    """
+    Bundle a timedelta with nanoseconds.
+
+    >>> _Saved_NS.derive('microseconds', .001)
+    _Saved_NS(td=datetime.timedelta(0), nanoseconds=1)
+    """
+
+    td = datetime.timedelta()
+    nanoseconds = 0
+    multiplier = dict(
+        seconds=1000000000,
+        milliseconds=1000000,
+        microseconds=1000,
+    )
+
+    def __init__(self, **kwargs):
+        vars(self).update(kwargs)
+
+    @classmethod
+    def derive(cls, unit, value):
+        if unit == 'nanoseconds':
+            return _Saved_NS(nanoseconds=value)
+
+        res = _Saved_NS(td=datetime.timedelta(**{unit: value}))
+        with contextlib.suppress(KeyError):
+            res.nanoseconds = int(value * cls.multiplier[unit]) % 1000
+        return res
+
+    def __add__(self, other):
+        return _Saved_NS(
+            td=self.td + other.td, nanoseconds=self.nanoseconds + other.nanoseconds
+        )
+
+    def resolve(self):
+        """
+        Resolve any nanoseconds into the microseconds field,
+        discarding any nanosecond resolution (but honoring partial
+        microseconds).
+        """
+        addl_micros = round(self.nanoseconds / 1000)
+        return self.td + datetime.timedelta(microseconds=addl_micros)
+
+    def __repr__(self):
+        return f'_Saved_NS(td={self.td!r}, nanoseconds={self.nanoseconds!r})'
 
 
 def divide_timedelta(td1, td2):
