@@ -470,6 +470,18 @@ def parse_timedelta(str):
     >>> parse_timedelta('1s')
     datetime.timedelta(seconds=1)
 
+    >>> parse_timedelta('1sec')
+    datetime.timedelta(seconds=1)
+
+    >>> parse_timedelta('1 ms')
+    datetime.timedelta(microseconds=1000)
+
+    >>> parse_timedelta('1 µs')
+    datetime.timedelta(microseconds=1)
+
+    >>> parse_timedelta('1 us')
+    datetime.timedelta(microseconds=1)
+
     And supports the common colon-separated duration:
 
     >>> parse_timedelta('14:00:35.362')
@@ -508,13 +520,32 @@ def _check_unmatched(matches, text):
     check_unmatched(text[match.end() :])
 
 
+_unit_lookup = {
+    'µs': 'microsecond',
+    'µsec': 'microsecond',
+    'us': 'microsecond',
+    'usec': 'microsecond',
+    'micros': 'microsecond',
+    'ms': 'millisecond',
+    'msec': 'millisecond',
+    'millis': 'millisecond',
+    's': 'second',
+    'sec': 'second',
+    'h': 'hour',
+    'hr': 'hour',
+    'm': 'minute',
+    'min': 'minute',
+    'w': 'week',
+    'wk': 'week',
+    'd': 'day',
+}
+
+
 def _resolve_unit(raw_match):
     if raw_match is None:
         return 'second'
     text = raw_match.lower()
-    if text == 's':
-        return 'second'
-    return text
+    return _unit_lookup.get(text, text)
 
 
 def _parse_timedelta_composite(raw_value, unit):
