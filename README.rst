@@ -17,6 +17,9 @@
 .. image:: https://readthedocs.org/projects/tempora/badge/?version=latest
    :target: https://tempora.readthedocs.io/en/latest/?badge=latest
 
+.. image:: https://img.shields.io/badge/skeleton-2021-informational
+   :target: https://blog.jaraco.com/skeleton
+
 
 Objects and routines pertaining to date and time (tempora).
 
