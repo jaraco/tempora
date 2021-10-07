@@ -77,14 +77,14 @@ class Parser:
 
 
 # some useful constants
-osc_per_year = 290091329207984000
+osc_per_year = 290_091_329_207_984_000
 """
 mean vernal equinox year expressed in oscillations of atomic cesium at the
 year 2000 (see http://webexhibits.org/calendars/timeline.html for more info).
 """
-osc_per_second = 9192631770
+osc_per_second = 9_192_631_770
 seconds_per_second = 1
-seconds_per_year = 31556940
+seconds_per_year = 31_556_940
 seconds_per_minute = 60
 minutes_per_hour = 60
 hours_per_day = 24
