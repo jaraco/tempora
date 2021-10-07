@@ -1,3 +1,8 @@
+v4.1.2
+======
+
+- #18: Docs now build without warnings.
+
 v4.1.1
 ======
 
