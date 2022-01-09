@@ -550,7 +550,11 @@ class _Saved_NS:
         if unit == 'nanoseconds':
             return _Saved_NS(nanoseconds=value)
 
-        res = _Saved_NS(td=datetime.timedelta(**{unit: value}))
+        try:
+            raw_td = datetime.timedelta(**{unit: value})
+        except TypeError:
+            raise ValueError(f"Invalid unit {unit}")
+        res = _Saved_NS(td=raw_td)
         with contextlib.suppress(KeyError):
             res.nanoseconds = int(value * cls.multiplier[unit]) % 1000
         return res
