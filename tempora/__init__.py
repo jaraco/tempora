@@ -376,21 +376,6 @@ def get_date_format_string(period):
     return ''.join(format_pieces)
 
 
-def divide_timedelta_float(td, divisor):
-    """
-    Divide a timedelta by a float value
-
-    >>> one_day = datetime.timedelta(days=1)
-    >>> half_day = datetime.timedelta(days=.5)
-    >>> divide_timedelta_float(one_day, 2.0) == half_day
-    True
-    >>> divide_timedelta_float(one_day, 2) == half_day
-    True
-    """
-    warnings.warn("Use native division", DeprecationWarning)
-    return td / divisor
-
-
 def calculate_prorated_values():
     """
     >>> monkeypatch = getfixture('monkeypatch')
@@ -639,19 +624,6 @@ class _Saved_NS:
 
     def __repr__(self):
         return f'_Saved_NS(td={self.td!r}, nanoseconds={self.nanoseconds!r})'
-
-
-def divide_timedelta(td1, td2):
-    """
-    Get the ratio of two timedeltas
-
-    >>> one_day = datetime.timedelta(days=1)
-    >>> one_hour = datetime.timedelta(hours=1)
-    >>> divide_timedelta(one_hour, one_day) == 1 / 24
-    True
-    """
-    warnings.warn("Use native division", DeprecationWarning)
-    return td1 / td2
 
 
 def date_range(start=None, stop=None, step=None):
