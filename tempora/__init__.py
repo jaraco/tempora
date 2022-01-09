@@ -5,75 +5,9 @@ import time
 import re
 import numbers
 import functools
-import warnings
 import contextlib
 
 from jaraco.functools import once
-
-
-class Parser:
-    """
-    *deprecated*
-
-    Datetime parser: parses a date-time string using multiple possible
-    formats.
-
-    >>> p = Parser(('%H%M', '%H:%M'))
-    >>> tuple(p.parse('1319'))
-    (1900, 1, 1, 13, 19, 0, 0, 1, -1)
-    >>> dateParser = Parser(('%m/%d/%Y', '%Y-%m-%d', '%d-%b-%Y'))
-    >>> tuple(dateParser.parse('2003-12-20'))
-    (2003, 12, 20, 0, 0, 0, 5, 354, -1)
-    >>> tuple(dateParser.parse('16-Dec-1994'))
-    (1994, 12, 16, 0, 0, 0, 4, 350, -1)
-    >>> tuple(dateParser.parse('5/19/2003'))
-    (2003, 5, 19, 0, 0, 0, 0, 139, -1)
-    >>> dtParser = Parser(('%Y-%m-%d %H:%M:%S', '%a %b %d %H:%M:%S %Y'))
-    >>> tuple(dtParser.parse('2003-12-20 19:13:26'))
-    (2003, 12, 20, 19, 13, 26, 5, 354, -1)
-    >>> tuple(dtParser.parse('Tue Jan 20 16:19:33 2004'))
-    (2004, 1, 20, 16, 19, 33, 1, 20, -1)
-
-    Be forewarned, a ValueError will be raised if more than one format
-    matches:
-
-    >>> Parser(('%H%M', '%H%M%S')).parse('732')
-    Traceback (most recent call last):
-        ...
-    ValueError: More than one format string matched target 732.
-
-    >>> Parser(('%H',)).parse('22:21')
-    Traceback (most recent call last):
-    ...
-    ValueError: No format strings matched the target 22:21.
-    """
-
-    formats = ('%m/%d/%Y', '%m/%d/%y', '%Y-%m-%d', '%d-%b-%Y', '%d-%b-%y')
-    "some common default formats"
-
-    def __init__(self, formats=None):
-        warnings.warn("Use dateutil.parser", DeprecationWarning)
-        if formats:
-            self.formats = formats
-
-    def parse(self, target):
-        self.target = target
-        results = tuple(filter(None, map(self._parse, self.formats)))
-        del self.target
-        if not results:
-            tmpl = "No format strings matched the target {target}."
-            raise ValueError(tmpl.format(**locals()))
-        if not len(results) == 1:
-            tmpl = "More than one format string matched target {target}."
-            raise ValueError(tmpl.format(**locals()))
-        return results[0]
-
-    def _parse(self, format):
-        try:
-            result = time.strptime(self.target, format)
-        except ValueError:
-            result = False
-        return result
 
 
 # some useful constants
