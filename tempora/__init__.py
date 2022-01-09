@@ -466,7 +466,7 @@ def _check_unmatched(matches, text):
         check_unmatched(text[pos : match.start()])
         yield match
         pos = match.end()
-    check_unmatched(text[match.end() :])
+    check_unmatched(text[pos:])
 
 
 _unit_lookup = {
