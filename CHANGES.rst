@@ -4,6 +4,7 @@ v5.0.0
 - Removed deprecated ``divide_*`` functions and ``Parser``
   class.
 - Require Python 3.7 or later.
+- #19: Fixed error reporting in parse_timedelta.
 
 v4.1.2
 ======
