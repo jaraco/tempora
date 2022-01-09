@@ -1,3 +1,10 @@
+v5.0.0
+======
+
+- Removed deprecated ``divide_*`` functions and ``Parser``
+  class.
+- Require Python 3.7 or later.
+
 v4.1.2
 ======
 
