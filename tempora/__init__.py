@@ -427,6 +427,19 @@ def parse_timedelta(str):
 
     >>> parse_timedelta('.002 µs, 499 ns')
     datetime.timedelta(microseconds=1)
+
+    Expect ValueError for other invalid inputs.
+
+    >>> parse_timedelta('12345Matrix')
+    Traceback (most recent call last):
+    ...
+    ValueError: ...
+
+    >>> parse_timedelta('MatrixFour')
+    Traceback (most recent call last):
+    ...
+    ValueError: ...
+
     """
     return _parse_timedelta_nanos(str).resolve()
 
