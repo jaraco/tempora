@@ -380,6 +380,11 @@ def parse_timedelta(str):
     >>> diff.seconds
     20940
 
+    >>> parse_timedelta('foo')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unexpected 'foo'
+
     >>> parse_timedelta('14 seconds foo')
     Traceback (most recent call last):
     ...
@@ -430,16 +435,10 @@ def parse_timedelta(str):
 
     Expect ValueError for other invalid inputs.
 
-    >>> parse_timedelta('12345Matrix')
+    >>> parse_timedelta('13 feet')
     Traceback (most recent call last):
     ...
-    ValueError: ...
-
-    >>> parse_timedelta('MatrixFour')
-    Traceback (most recent call last):
-    ...
-    ValueError: ...
-
+    ValueError: Invalid unit feets
     """
     return _parse_timedelta_nanos(str).resolve()
 
