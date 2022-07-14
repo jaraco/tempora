@@ -7,6 +7,8 @@ Welcome to |project| documentation!
    history
 
 
+.. tidelift-referral-banner::
+
 .. automodule:: tempora
     :members:
     :undoc-members:
@@ -43,4 +45,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

@@ -20,6 +20,8 @@
 .. image:: https://img.shields.io/badge/skeleton-2022-informational
    :target: https://blog.jaraco.com/skeleton
 
+.. image:: https://tidelift.com/badges/package/pypi/tempora
+   :target: https://tidelift.com/subscription/pkg/pypi-tempora?utm_source=pypi-tempora&utm_medium=readme
 
 Objects and routines pertaining to date and time (tempora).
 
@@ -30,3 +32,19 @@ Modules include:
 - timing contains routines for measuring and profiling.
 - schedule contains an event scheduler.
 - utc contains routines for getting datetime-aware UTC values.
+
+For Enterprise
+==============
+
+Available as part of the Tidelift Subscription.
+
+This project and the maintainers of thousands of other packages are working with Tidelift to deliver one enterprise subscription that covers all of the open source you use.
+
+`Learn more <https://tidelift.com/subscription/pkg/pypi-tempora?utm_source=pypi-tempora&utm_medium=referral&utm_campaign=github>`_.
+
+Security Contact
+================
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.
