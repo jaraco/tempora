@@ -1,3 +1,9 @@
+v5.0.2
+======
+
+- Refreshed project.
+- Enrolled with Tidelift.
+
 v5.0.1
 ======
 
