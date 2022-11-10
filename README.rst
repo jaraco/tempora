@@ -1,10 +1,7 @@
 .. image:: https://img.shields.io/pypi/v/tempora.svg
-   :target: `PyPI link`_
+   :target: https://pypi.org/project/tempora
 
 .. image:: https://img.shields.io/pypi/pyversions/tempora.svg
-   :target: `PyPI link`_
-
-.. _PyPI link: https://pypi.org/project/tempora
 
 .. image:: https://github.com/jaraco/tempora/workflows/tests/badge.svg
    :target: https://github.com/jaraco/tempora/actions?query=workflow%3A%22tests%22
