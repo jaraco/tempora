@@ -6,7 +6,10 @@ import re
 import numbers
 import functools
 import contextlib
-from typing import Union, Tuple, cast
+from numbers import Number
+from typing import Union, Tuple, Iterable
+from typing import cast
+
 
 from jaraco.functools import once
 
@@ -335,7 +338,7 @@ def calculate_prorated_values():
         print(f"per {period}: {value}")
 
 
-def _prorated_values(rate):
+def _prorated_values(rate: str) -> Iterable[Tuple[str, Number]]:
     """
     Given a rate (a string in units per unit time), and return that same
     rate for various time periods.
@@ -349,7 +352,8 @@ def _prorated_values(rate):
     year: 175316.333
 
     """
-    res = re.match(r'(?P<value>[\d.]+)/(?P<period>\w+)$', rate).groupdict()
+    match = re.match(r'(?P<value>[\d.]+)/(?P<period>\w+)$', rate)
+    res = cast(re.Match, match).groupdict()
     value = float(res['value'])
     value_per_second = value / get_period_seconds(res['period'])
     for period in ('minute', 'hour', 'day', 'month', 'year'):
