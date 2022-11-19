@@ -1,3 +1,8 @@
+v5.1.0
+======
+
+Introduced ``infer_datetime`` and added some type hints.
+
 v5.0.2
 ======
 
