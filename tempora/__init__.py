@@ -324,7 +324,7 @@ def calculate_prorated_values():
     """
     rate = input("Enter the rate (3/hour, 50/month)> ")
     for period, value in _prorated_values(rate):
-        print("per {period}: {value}".format(**locals()))
+        print(f"per {period}: {value}")
 
 
 def _prorated_values(rate):
