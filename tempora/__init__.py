@@ -6,6 +6,7 @@ import re
 import numbers
 import functools
 import contextlib
+from typing import Union, Tuple, cast
 
 from jaraco.functools import once
 
@@ -33,7 +34,7 @@ hours_per_month = hours_per_day * days_per_year / 12
 
 
 @once
-def _needs_year_help():
+def _needs_year_help() -> bool:
     """
     Some versions of Python render %Y with only three characters :(
     https://bugs.python.org/issue39103
@@ -41,14 +42,19 @@ def _needs_year_help():
     return len(datetime.date(900, 1, 1).strftime('%Y')) != 4
 
 
-def ensure_datetime(ob):
+AnyDatetime = Union[datetime.datetime, datetime.date, datetime.time]
+StructDatetime = Union[Tuple[int, ...], time.struct_time]
+
+
+def ensure_datetime(ob: AnyDatetime) -> datetime.datetime:
     """
     Given a datetime or date or time object from the ``datetime``
     module, always return a datetime using default values.
     """
     if isinstance(ob, datetime.datetime):
         return ob
-    date = time = ob
+    date = cast(datetime.date, ob)
+    time = cast(datetime.time, ob)
     if isinstance(ob, datetime.date):
         time = datetime.time()
     if isinstance(ob, datetime.time):
@@ -56,7 +62,13 @@ def ensure_datetime(ob):
     return datetime.datetime.combine(date, time)
 
 
-def strftime(fmt, t):
+def infer_datetime(ob: Union[AnyDatetime, StructDatetime]) -> datetime.datetime:
+    if isinstance(ob, (time.struct_time, tuple)):
+        ob = datetime.datetime(*ob[:6])  # type: ignore
+    return ensure_datetime(ob)
+
+
+def strftime(fmt: str, t: Union[AnyDatetime, tuple, time.struct_time]) -> str:
     """
     Portable strftime.
 
@@ -115,10 +127,8 @@ def strftime(fmt, t):
     >>> strftime('%Y', datetime.time())
     '1900'
     """
-    if isinstance(t, (time.struct_time, tuple)):
-        t = datetime.datetime(*t[:6])
-    t = ensure_datetime(t)
-    subs = (
+    t = infer_datetime(t)
+    subs: Tuple[Tuple[str, str], ...] = (
         ('%s', '%03d' % (t.microsecond // 1000)),
         ('%µ', '%03d' % (t.microsecond % 1000)),
     )
