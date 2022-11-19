@@ -128,12 +128,10 @@ def strftime(fmt: str, t: Union[AnyDatetime, tuple, time.struct_time]) -> str:
     '1900'
     """
     t = infer_datetime(t)
-    subs: Tuple[Tuple[str, str], ...] = (
+    subs = (
         ('%s', '%03d' % (t.microsecond // 1000)),
         ('%µ', '%03d' % (t.microsecond % 1000)),
-    )
-    if _needs_year_help():  # pragma: nocover
-        subs += (('%Y', '%04d' % t.year),)
+    ) + (('%Y', '%04d' % t.year),) * _needs_year_help()
 
     def doSub(s, sub):
         return s.replace(*sub)
