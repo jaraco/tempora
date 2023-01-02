@@ -1,3 +1,8 @@
+v5.2.0
+======
+
+Remove dependency on jaraco.functools.
+
 v5.1.1
 ======
 
