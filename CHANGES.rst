@@ -1,3 +1,9 @@
+v5.2.1
+======
+
+#21: Restored dependency on ``jaraco.functools``, still
+used in timing module.
+
 v5.2.0
 ======
 
