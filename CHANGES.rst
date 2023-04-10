@@ -1,3 +1,9 @@
+v5.2.2
+======
+
+#22: Fixed bug in tests that would fail when a leap year
+was about a year away.
+
 v5.2.1
 ======
 
