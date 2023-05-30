@@ -51,16 +51,21 @@ class Stopwatch:
             del self.start_time
 
     def start(self):
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = datetime.datetime.now(datetime.timezone.utc).replace(
+            tzinfo=None
+        )
 
     def stop(self):
-        stop_time = datetime.datetime.utcnow()
+        stop_time = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         self.elapsed += stop_time - self.start_time
         del self.start_time
         return self.elapsed
 
     def split(self):
-        local_duration = datetime.datetime.utcnow() - self.start_time
+        local_duration = (
+            datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+            - self.start_time
+        )
         return self.elapsed + local_duration
 
     # context manager support
