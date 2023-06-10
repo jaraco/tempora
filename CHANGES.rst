@@ -1,3 +1,9 @@
+v5.3.0
+======
+
+#24: Removed use of ``datetime.utc**`` functions
+deprecated in Python 3.12.
+
 v5.2.2
 ======
 
