@@ -132,7 +132,7 @@ class TestScheduler:
         sched = schedule.InvokeScheduler()
         target = mock.MagicMock()
 
-        before = datetime.datetime.now()
+        before = datetime.datetime.now(tz=datetime.timezone.utc)
 
         cmd = schedule.PeriodicCommand.after(10, target)
         sched.add(cmd)
