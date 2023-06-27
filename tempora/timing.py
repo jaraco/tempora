@@ -50,18 +50,19 @@ class Stopwatch:
         with contextlib.suppress(AttributeError):
             del self.start_time
 
+    def _diff(self):
+        return datetime.datetime.now(datetime.timezone.utc) - self.start_time
+
     def start(self):
         self.start_time = datetime.datetime.now(datetime.timezone.utc)
 
     def stop(self):
-        stop_time = datetime.datetime.now(datetime.timezone.utc)
-        self.elapsed += stop_time - self.start_time
+        self.elapsed += self._diff()
         del self.start_time
         return self.elapsed
 
     def split(self):
-        local_duration = datetime.datetime.now(datetime.timezone.utc) - self.start_time
-        return self.elapsed + local_duration
+        return self.elapsed + self._diff()
 
     # context manager support
     def __enter__(self):
