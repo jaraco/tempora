@@ -48,17 +48,17 @@ class Stopwatch:
     def reset(self):
         self.elapsed = datetime.timedelta(0)
         with contextlib.suppress(AttributeError):
-            del self.start_time
+            del self._start
 
     def _diff(self):
-        return datetime.datetime.now(datetime.timezone.utc) - self.start_time
+        return datetime.datetime.now(datetime.timezone.utc) - self._start
 
     def start(self):
-        self.start_time = datetime.datetime.now(datetime.timezone.utc)
+        self._start = datetime.datetime.now(datetime.timezone.utc)
 
     def stop(self):
         self.elapsed += self._diff()
-        del self.start_time
+        del self._start
         return self.elapsed
 
     def split(self):
