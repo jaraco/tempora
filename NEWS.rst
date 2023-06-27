@@ -1,3 +1,12 @@
+v5.5.0
+======
+
+Features
+--------
+
+- Stopwatch now uses ``time.monotonic``.
+
+
 v5.4.0
 ======
 
