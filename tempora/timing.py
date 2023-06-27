@@ -1,9 +1,9 @@
+import collections.abc
+import contextlib
 import datetime
 import functools
 import numbers
 import time
-import collections.abc
-import contextlib
 
 import jaraco.functools
 
@@ -16,7 +16,6 @@ class Stopwatch:
     >>> _1_sec = datetime.timedelta(seconds=1)
     >>> w.split() < _1_sec
     True
-    >>> import time
     >>> time.sleep(1.0)
     >>> w.split() >= _1_sec
     True
