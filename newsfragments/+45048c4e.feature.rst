@@ -1,0 +1,1 @@
+Stopwatch now uses ``time.monotonic``.

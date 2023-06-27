@@ -51,10 +51,10 @@ class Stopwatch:
             del self._start
 
     def _diff(self):
-        return datetime.datetime.now(datetime.timezone.utc) - self._start
+        return datetime.timedelta(seconds=time.monotonic() - self._start)
 
     def start(self):
-        self._start = datetime.datetime.now(datetime.timezone.utc)
+        self._start = time.monotonic()
 
     def stop(self):
         self.elapsed += self._diff()
