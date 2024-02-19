@@ -18,9 +18,7 @@ def test_delayed_command_order():
     delayed commands should be sorted by delay time
     """
     delays = [random.randint(0, 99) for x in range(5)]
-    cmds = sorted([
-        schedule.DelayedCommand.after(delay, do_nothing) for delay in delays
-    ])
+    cmds = sorted(schedule.DelayedCommand.after(delay, do_nothing) for delay in delays)
     assert [c.delay.seconds for c in cmds] == sorted(delays)
 
 
