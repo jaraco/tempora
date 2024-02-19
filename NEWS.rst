@@ -1,3 +1,12 @@
+v5.5.1
+======
+
+Bugfixes
+--------
+
+- Remove test dependency on backports.unittest_mock. (#26)
+
+
 v5.5.0
 ======
 
