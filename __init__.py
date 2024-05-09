@@ -1,5 +1,12 @@
 "Objects and routines pertaining to date and time (tempora)"
 
+__requires__ = [
+    'pytz',
+    'jaraco.functools>=1.20',
+    'pytest-freezer; extra=="testing"',
+    'types-pytz; extra=="testing"',
+]
+
 import datetime
 import time
 import re
