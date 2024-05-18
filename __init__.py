@@ -3,8 +3,8 @@
 __requires__ = [
     'pytz',
     'jaraco.functools>=1.20',
-    'pytest-freezer; extra=="testing"',
-    'types-pytz; extra=="testing"',
+    'pytest-freezer; extra=="test"',
+    'types-pytz; extra=="test"',
 ]
 
 import datetime
