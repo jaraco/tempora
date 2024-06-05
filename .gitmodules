@@ -1,0 +1,4 @@
+[submodule "tempora"]
+	path = tempora
+	url = gh://jaraco/tempora
+	branch = experiment/coherent
