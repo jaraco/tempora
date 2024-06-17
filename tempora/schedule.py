@@ -21,7 +21,7 @@ import sys
 
 if sys.version_info >= (3, 9):
     from zoneinfo import ZoneInfo
-else:
+else:  # pragma: no cover
     from backports.zoneinfo import ZoneInfo
 
 
