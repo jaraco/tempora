@@ -110,18 +110,7 @@ class PeriodicCommand(DelayedCommand):
         """
         Add delay to self, localized
         """
-        return self._localize(self + self.delay)
-
-    @staticmethod
-    def _localize(dt):
-        """
-        Rely on ZoneInfo.localize to ensure new result honors DST.
-        """
-        try:
-            tz = dt.tzinfo
-            return tz.localize(dt.replace(tzinfo=None))
-        except AttributeError:
-            return dt
+        return self + self.delay
 
     def next(self):
         cmd = self.__class__.from_datetime(self._next_time())
@@ -174,7 +163,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         when -= daily
         while when < now():
             when += daily
-        return cls.at_time(cls._localize(when), daily, target)
+        return cls.at_time(when, daily, target)
 
 
 class Scheduler:
