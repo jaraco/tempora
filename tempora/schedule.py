@@ -4,7 +4,7 @@ Classes for calling functions a schedule. Has time zone support.
 For example, to run a job at 08:00 every morning in 'Asia/Calcutta':
 
 >>> job = lambda: print("time is now", datetime.datetime())
->>> time = datetime.time(8, tzinfo=pytz.timezone('Asia/Calcutta'))
+>>> time = datetime.time(8, tzinfo=ZoneInfo('Asia/Calcutta'))
 >>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
 >>> sched = InvokeScheduler()
 >>> sched.add(cmd)
@@ -17,8 +17,12 @@ import datetime
 import numbers
 import abc
 import bisect
+import sys
 
-import pytz
+if sys.version_info >= (3, 9):
+    from zoneinfo import ZoneInfo
+else:
+    from backports.zoneinfo import ZoneInfo
 
 
 def now():
@@ -28,7 +32,7 @@ def now():
     A client may override this function to change the default behavior,
     such as to use local time or timezone-naïve times.
     """
-    return datetime.datetime.now(pytz.utc)
+    return datetime.datetime.now(ZoneInfo('UTC'))
 
 
 def from_timestamp(ts):
@@ -38,7 +42,7 @@ def from_timestamp(ts):
     A client may override this function to change the default behavior,
     such as to use local time or timezone-naïve times.
     """
-    return datetime.datetime.fromtimestamp(ts, pytz.utc)
+    return datetime.datetime.fromtimestamp(ts, ZoneInfo('UTC'))
 
 
 class DelayedCommand(datetime.datetime):
@@ -111,7 +115,7 @@ class PeriodicCommand(DelayedCommand):
     @staticmethod
     def _localize(dt):
         """
-        Rely on pytz.localize to ensure new result honors DST.
+        Rely on ZoneInfo.localize to ensure new result honors DST.
         """
         try:
             tz = dt.tzinfo

@@ -18,8 +18,8 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-	"pytz",
 	"jaraco.functools>=1.20",
+	"backports.zoneinfo; python_version < '3.9'",
 ]
 dynamic = ["version"]
 

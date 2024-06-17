@@ -4,10 +4,10 @@ import datetime
 from unittest import mock
 
 import pytest
-import pytz
 import freezegun
 
 from tempora import schedule
+from tempora.schedule import ZoneInfo
 
 
 do_nothing = type(None)
@@ -53,7 +53,7 @@ class TestCommands:
         """
         Create a periodic command that's run at noon every day.
         """
-        when = datetime.time(12, 0, tzinfo=pytz.utc)
+        when = datetime.time(12, 0, tzinfo=ZoneInfo('UTC'))
         cmd = schedule.PeriodicCommandFixedDelay.daily_at(when, target=None)
         assert cmd.due() is False
         next_cmd = cmd.next()
@@ -75,13 +75,13 @@ class TestCommands:
 
 class TestTimezones:
     def test_alternate_timezone_west(self):
-        target_tz = pytz.timezone('US/Pacific')
+        target_tz = ZoneInfo('US/Pacific')
         target = schedule.now().astimezone(target_tz)
         cmd = schedule.DelayedCommand.at_time(target, target=None)
         assert cmd.due()
 
     def test_alternate_timezone_east(self):
-        target_tz = pytz.timezone('Europe/Amsterdam')
+        target_tz = ZoneInfo('Europe/Amsterdam')
         target = schedule.now().astimezone(target_tz)
         cmd = schedule.DelayedCommand.at_time(target, target=None)
         assert cmd.due()
@@ -92,7 +92,7 @@ class TestTimezones:
         a DST boundary.
         """
         with freezegun.freeze_time('2018-03-10 08:00:00'):
-            target_tz = pytz.timezone('US/Eastern')
+            target_tz = ZoneInfo('US/Eastern')
             target_time = datetime.time(9, tzinfo=target_tz)
             cmd = schedule.PeriodicCommandFixedDelay.daily_at(
                 target_time, target=lambda: None
