@@ -91,19 +91,34 @@ class TestTimezones:
         A command at 9am should always be 9am regardless of
         a DST boundary.
         """
-        with freezegun.freeze_time('2018-03-10 08:00:00'):
+        with freezegun.freeze_time('2018-03-10'):
             target_tz = ZoneInfo('US/Eastern')
             target_time = datetime.time(9, tzinfo=target_tz)
             cmd = schedule.PeriodicCommandFixedDelay.daily_at(
                 target_time, target=lambda: None
             )
+            assert not cmd.due()
 
         def naive(dt):
             return dt.replace(tzinfo=None)
 
         assert naive(cmd) == datetime.datetime(2018, 3, 10, 9, 0, 0)
+
+        with freezegun.freeze_time('2018-03-10 8:59:59 -0500'):
+            assert not cmd.due()
+
+        with freezegun.freeze_time('2018-03-10 9:00:00 -0500'):
+            assert cmd.due()
+
         next_ = cmd.next()
+
         assert naive(next_) == datetime.datetime(2018, 3, 11, 9, 0, 0)
+
+        with freezegun.freeze_time('2018-03-11 8:59:59 -0400'):
+            assert not next_.due()
+
+        with freezegun.freeze_time('2018-03-11 9:00:00 -0400'):
+            assert next_.due()
 
 
 class TestScheduler:
