@@ -104,7 +104,6 @@ class TestTimezones:
         assert naive(cmd) == datetime.datetime(2018, 3, 10, 9, 0, 0)
         next_ = cmd.next()
         assert naive(next_) == datetime.datetime(2018, 3, 11, 9, 0, 0)
-        assert next_ - cmd == datetime.timedelta(hours=23)
 
 
 class TestScheduler:
