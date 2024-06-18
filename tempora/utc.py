@@ -21,6 +21,13 @@ datetime.timezone.utc
 
 >>> time(0, 0).tzinfo
 datetime.timezone.utc
+
+These operations should be affected by freezegun.
+
+>>> freezer = getfixture('freezer')
+>>> freezer.move_to('2000-01-01 00:00:00 -0700')
+>>> now()
+datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
 """
 
 import datetime as std
