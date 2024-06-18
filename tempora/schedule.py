@@ -3,7 +3,7 @@ Classes for calling functions a schedule. Has time zone support.
 
 For example, to run a job at 08:00 every morning in 'Asia/Calcutta':
 
->>> import zoneinfo
+>>> from tests.compat.py38 import zoneinfo
 >>> job = lambda: print("time is now", datetime.datetime())
 >>> time = datetime.time(8, tzinfo=zoneinfo.ZoneInfo('Asia/Calcutta'))
 >>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
