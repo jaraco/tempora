@@ -1,3 +1,13 @@
+v5.6.0
+======
+
+Features
+--------
+
+- Removed dependency on pytz. (#29)
+- In utc.now(), bind late to allow for monkeypatching. (#31)
+
+
 v5.5.1
 ======
 
