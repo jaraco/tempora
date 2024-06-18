@@ -3,46 +3,32 @@ Classes for calling functions a schedule. Has time zone support.
 
 For example, to run a job at 08:00 every morning in 'Asia/Calcutta':
 
+>>> import zoneinfo
 >>> job = lambda: print("time is now", datetime.datetime())
->>> time = datetime.time(8, tzinfo=ZoneInfo('Asia/Calcutta'))
+>>> time = datetime.time(8, tzinfo=zoneinfo.ZoneInfo('Asia/Calcutta'))
 >>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
 >>> sched = InvokeScheduler()
 >>> sched.add(cmd)
 >>> while True:  # doctest: +SKIP
 ...     sched.run_pending()
 ...     time.sleep(.1)
+
+By default, the scheduler uses timezone-aware times in UTC. A
+client may override the default behavior by overriding ``now``
+and ``from_timestamp`` functions.
+
+>>> now()
+datetime.datetime(...utc)
+>>> from_timestamp(1718723533.7685602)
+datetime.datetime(...utc)
 """
 
 import datetime
 import numbers
 import abc
 import bisect
-import sys
 
-if sys.version_info >= (3, 9):
-    from zoneinfo import ZoneInfo
-else:  # pragma: no cover
-    from backports.zoneinfo import ZoneInfo
-
-
-def now():
-    """
-    Provide the current timezone-aware datetime.
-
-    A client may override this function to change the default behavior,
-    such as to use local time or timezone-naïve times.
-    """
-    return datetime.datetime.now(ZoneInfo('UTC'))
-
-
-def from_timestamp(ts):
-    """
-    Convert a numeric timestamp to a timezone-aware datetime.
-
-    A client may override this function to change the default behavior,
-    such as to use local time or timezone-naïve times.
-    """
-    return datetime.datetime.fromtimestamp(ts, ZoneInfo('UTC'))
+from .utc import now, fromtimestamp as from_timestamp
 
 
 class DelayedCommand(datetime.datetime):

@@ -19,7 +19,6 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
 	"jaraco.functools>=1.20",
-	"backports.zoneinfo; python_version < '3.9'",
 ]
 dynamic = ["version"]
 
@@ -38,7 +37,7 @@ testing = [
 
 	# local
 	"pytest-freezer",
-	"types-pytz",
+	"backports.zoneinfo; python_version < '3.9'",
 ]
 docs = [
 	# upstream

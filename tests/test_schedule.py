@@ -1,3 +1,4 @@
+import sys
 import time
 import random
 import datetime
@@ -7,7 +8,11 @@ import pytest
 import freezegun
 
 from tempora import schedule
-from tempora.schedule import ZoneInfo
+
+if sys.version_info >= (3, 9):
+    from zoneinfo import ZoneInfo
+else:  # pragma: no cover
+    from backports.zoneinfo import ZoneInfo
 
 
 do_nothing = type(None)
