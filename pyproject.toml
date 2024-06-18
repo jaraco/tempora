@@ -26,7 +26,7 @@ dynamic = ["version"]
 Homepage = "https://github.com/jaraco/tempora"
 
 [project.optional-dependencies]
-testing = [
+test = [
 	# upstream
 	"pytest >= 6, != 8.1.*",
 	"pytest-checkdocs >= 2.4",
@@ -40,7 +40,7 @@ testing = [
 	"backports.zoneinfo; python_version < '3.9'",
 	"tzdata; platform_system == 'Windows'",
 ]
-docs = [
+doc = [
 	# upstream
 	"sphinx >= 3.5",
 	"jaraco.packaging >= 9.3",
