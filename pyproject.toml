@@ -38,7 +38,7 @@ testing = [
 	# local
 	"pytest-freezer",
 	"backports.zoneinfo; python_version < '3.9'",
-	"backports.zoneinfo[tzdata]; python_version < '3.9' and platform_system == 'Windows'"
+	"tzdata; platform_system == 'Windows'",
 ]
 docs = [
 	# upstream
