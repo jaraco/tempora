@@ -4,10 +4,11 @@ import datetime
 from unittest import mock
 
 import pytest
-import pytz
 import freezegun
 
 from tempora import schedule
+
+from .compat.py38 import zoneinfo
 
 
 do_nothing = type(None)
@@ -53,7 +54,7 @@ class TestCommands:
         """
         Create a periodic command that's run at noon every day.
         """
-        when = datetime.time(12, 0, tzinfo=pytz.utc)
+        when = datetime.time(12, 0, tzinfo=zoneinfo.ZoneInfo('UTC'))
         cmd = schedule.PeriodicCommandFixedDelay.daily_at(when, target=None)
         assert cmd.due() is False
         next_cmd = cmd.next()
@@ -75,13 +76,13 @@ class TestCommands:
 
 class TestTimezones:
     def test_alternate_timezone_west(self):
-        target_tz = pytz.timezone('US/Pacific')
+        target_tz = zoneinfo.ZoneInfo('US/Pacific')
         target = schedule.now().astimezone(target_tz)
         cmd = schedule.DelayedCommand.at_time(target, target=None)
         assert cmd.due()
 
     def test_alternate_timezone_east(self):
-        target_tz = pytz.timezone('Europe/Amsterdam')
+        target_tz = zoneinfo.ZoneInfo('Europe/Amsterdam')
         target = schedule.now().astimezone(target_tz)
         cmd = schedule.DelayedCommand.at_time(target, target=None)
         assert cmd.due()
@@ -91,20 +92,34 @@ class TestTimezones:
         A command at 9am should always be 9am regardless of
         a DST boundary.
         """
-        with freezegun.freeze_time('2018-03-10 08:00:00'):
-            target_tz = pytz.timezone('US/Eastern')
+        with freezegun.freeze_time('2018-03-10'):
+            target_tz = zoneinfo.ZoneInfo('US/Eastern')
             target_time = datetime.time(9, tzinfo=target_tz)
             cmd = schedule.PeriodicCommandFixedDelay.daily_at(
                 target_time, target=lambda: None
             )
+            assert not cmd.due()
 
         def naive(dt):
             return dt.replace(tzinfo=None)
 
         assert naive(cmd) == datetime.datetime(2018, 3, 10, 9, 0, 0)
+
+        with freezegun.freeze_time('2018-03-10 8:59:59 -0500'):
+            assert not cmd.due()
+
+        with freezegun.freeze_time('2018-03-10 9:00:00 -0500'):
+            assert cmd.due()
+
         next_ = cmd.next()
+
         assert naive(next_) == datetime.datetime(2018, 3, 11, 9, 0, 0)
-        assert next_ - cmd == datetime.timedelta(hours=23)
+
+        with freezegun.freeze_time('2018-03-11 8:59:59 -0400'):
+            assert not next_.due()
+
+        with freezegun.freeze_time('2018-03-11 9:00:00 -0400'):
+            assert next_.due()
 
 
 class TestScheduler:
