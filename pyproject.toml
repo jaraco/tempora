@@ -19,6 +19,7 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
 	"jaraco.functools>=1.20",
+	"python-dateutil",
 ]
 dynamic = ["version"]
 
@@ -39,6 +40,7 @@ test = [
 	"pytest-freezer",
 	"backports.zoneinfo; python_version < '3.9'",
 	"tzdata; platform_system == 'Windows'",
+	"types-python-dateutil",
 ]
 doc = [
 	# upstream
