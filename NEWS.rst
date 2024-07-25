@@ -1,3 +1,12 @@
+v5.7.0
+======
+
+Features
+--------
+
+- Add a tzinfos mapping and parse method for easy datetime parsing with timezone support.
+
+
 v5.6.0
 ======
 
