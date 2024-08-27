@@ -78,7 +78,3 @@ calc-prorate = "tempora:calculate_prorated_values"
 
 
 [tool.setuptools_scm]
-
-
-[tool.pytest-enabler.mypy]
-# Disabled due to jaraco/skeleton#143
