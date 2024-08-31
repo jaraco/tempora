@@ -76,7 +76,7 @@ def ensure_datetime(ob: AnyDatetime) -> datetime.datetime:
 
 def infer_datetime(ob: Union[AnyDatetime, StructDatetime]) -> datetime.datetime:
     if isinstance(ob, (time.struct_time, tuple)):
-        ob = datetime.datetime(*ob[:6])  # type: ignore
+        ob = datetime.datetime(*ob[:6])  # type: ignore[arg-type]
     return ensure_datetime(ob)
 
 
