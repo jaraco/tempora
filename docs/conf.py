@@ -57,3 +57,5 @@ extensions += ['sphinx.ext.extlinks']
 # local
 
 extensions += ['jaraco.tidelift']
+
+link_files.clear()
