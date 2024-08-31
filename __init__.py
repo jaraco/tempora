@@ -1,8 +1,6 @@
 "Objects and routines pertaining to date and time (tempora)"
 
 __requires__ = [
-    'jaraco.functools>=1.20',
-    'python-dateutil',
     'pytest-freezer; extra=="test"',
     'backports.zoneinfo; python_version < "3.9" and extra == "test"',
     'tzdata; platform_system == "Windows" and extra == "test"',
