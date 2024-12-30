@@ -1,14 +1,13 @@
 import time
 import random
 import datetime
+import zoneinfo
 from unittest import mock
 
 import pytest
 import freezegun
 
 from tempora import schedule
-
-from .compat.py38 import zoneinfo
 
 
 do_nothing = type(None)

@@ -8,6 +8,7 @@ on:
     # required if branches-ignore is supplied (jaraco/skeleton#103)
     - '**'
   pull_request:
+  workflow_dispatch:
 
 jobs:
   main:

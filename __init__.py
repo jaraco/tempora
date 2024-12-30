@@ -1,5 +1,7 @@
 "Objects and routines pertaining to date and time (tempora)"
 
+from __future__ import annotations
+
 __requires__ = [
     'pytest-freezer; extra=="test"',
     'backports.zoneinfo; python_version < "3.9" and extra == "test"',
@@ -7,19 +9,20 @@ __requires__ = [
     'types-python-dateutil; extra=="test"',
 ]
 
-import datetime
-import time
-import re
-import numbers
-import functools
 import contextlib
-from numbers import Number
-from typing import Union, Tuple, Iterable
-from typing import cast
+import datetime
+import functools
+import numbers
+import re
+import time
+from collections.abc import Iterable, Iterator, Sequence
+from typing import TYPE_CHECKING, Tuple, Union, cast
 
 import dateutil.parser
 import dateutil.tz
 
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 # some useful constants
 osc_per_year = 290_091_329_207_984_000
@@ -52,8 +55,8 @@ def _needs_year_help() -> bool:
     return len(datetime.date(900, 1, 1).strftime('%Y')) != 4
 
 
-AnyDatetime = Union[datetime.datetime, datetime.date, datetime.time]
-StructDatetime = Union[Tuple[int, ...], time.struct_time]
+AnyDatetime: TypeAlias = Union[datetime.datetime, datetime.date, datetime.time]
+StructDatetime: TypeAlias = Union[Tuple[int, ...], time.struct_time]
 
 
 def ensure_datetime(ob: AnyDatetime) -> datetime.datetime:
@@ -72,13 +75,14 @@ def ensure_datetime(ob: AnyDatetime) -> datetime.datetime:
     return datetime.datetime.combine(date, time)
 
 
-def infer_datetime(ob: Union[AnyDatetime, StructDatetime]) -> datetime.datetime:
+def infer_datetime(ob: AnyDatetime | StructDatetime) -> datetime.datetime:
     if isinstance(ob, (time.struct_time, tuple)):
+        # '"int" is not assignable to "tzinfo"', but we don't pass that many parameters
         ob = datetime.datetime(*ob[:6])  # type: ignore[arg-type]
     return ensure_datetime(ob)
 
 
-def strftime(fmt: str, t: Union[AnyDatetime, tuple, time.struct_time]) -> str:
+def strftime(fmt: str, t: AnyDatetime | tuple | time.struct_time) -> str:
     """
     Portable strftime.
 
@@ -153,7 +157,7 @@ def strftime(fmt: str, t: Union[AnyDatetime, tuple, time.struct_time]) -> str:
     return t.strftime(fmt)
 
 
-def datetime_mod(dt, period, start=None):
+def datetime_mod(dt: datetime.datetime, period, start=None) -> datetime.datetime:
     """
     Find the time which is the specified date/time truncated to the time delta
     relative to the start date/time.
@@ -197,7 +201,7 @@ def datetime_mod(dt, period, start=None):
     return result
 
 
-def datetime_round(dt, period, start=None):
+def datetime_round(dt, period: datetime.timedelta, start=None) -> datetime.datetime:
     """
     Find the nearest even period for the specified date/time.
 
@@ -217,7 +221,7 @@ def datetime_round(dt, period, start=None):
     return result
 
 
-def get_nearest_year_for_day(day):
+def get_nearest_year_for_day(day) -> int:
     """
     Returns the nearest year to now inferred from a Julian date.
 
@@ -242,7 +246,7 @@ def get_nearest_year_for_day(day):
     return result
 
 
-def gregorian_date(year, julian_day):
+def gregorian_date(year, julian_day) -> datetime.date:
     """
     Gregorian Date is defined as a year and a julian day (1-based
     index into the days of the year).
@@ -255,7 +259,7 @@ def gregorian_date(year, julian_day):
     return result
 
 
-def get_period_seconds(period):
+def get_period_seconds(period) -> int:
     """
     return the number of seconds in the specified period
 
@@ -286,7 +290,7 @@ def get_period_seconds(period):
     return result
 
 
-def get_date_format_string(period):
+def get_date_format_string(period) -> str:
     """
     For a given period (e.g. 'month', 'day', or some numeric interval
     such as 3600 (in secs)), return the format string that can be
@@ -314,7 +318,7 @@ def get_date_format_string(period):
     if isinstance(period, str) and period.lower() == 'month':
         return '%Y-%m'
     file_period_secs = get_period_seconds(period)
-    format_pieces = ('%Y', '-%m-%d', ' %H', '-%M', '-%S')
+    format_pieces: Sequence[str] = ('%Y', '-%m-%d', ' %H', '-%M', '-%S')
     seconds_per_second = 1
     intervals = (
         seconds_per_year,
@@ -328,7 +332,7 @@ def get_date_format_string(period):
     return ''.join(format_pieces)
 
 
-def calculate_prorated_values():
+def calculate_prorated_values() -> None:
     """
     >>> monkeypatch = getfixture('monkeypatch')
     >>> import builtins
@@ -345,7 +349,7 @@ def calculate_prorated_values():
         print(f"per {period}: {value}")
 
 
-def _prorated_values(rate: str) -> Iterable[Tuple[str, Number]]:
+def _prorated_values(rate: str) -> Iterator[tuple[str, float]]:
     """
     Given a rate (a string in units per unit time), and return that same
     rate for various time periods.
@@ -368,7 +372,7 @@ def _prorated_values(rate: str) -> Iterable[Tuple[str, Number]]:
         yield period, period_value
 
 
-def parse_timedelta(str):
+def parse_timedelta(str) -> datetime.timedelta:
     """
     Take a string representing a span of time and parse it to a time delta.
     Accepts any string of comma-separated numbers each with a unit indicator.
@@ -462,19 +466,19 @@ def parse_timedelta(str):
     return _parse_timedelta_nanos(str).resolve()
 
 
-def _parse_timedelta_nanos(str):
+def _parse_timedelta_nanos(str) -> _Saved_NS:
     parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>[^\W\d_]+)?', str)
     chk_parts = _check_unmatched(parts, str)
     deltas = map(_parse_timedelta_part, chk_parts)
     return sum(deltas, _Saved_NS())
 
 
-def _check_unmatched(matches, text):
+def _check_unmatched(matches: Iterable[re.Match[str]], text) -> Iterator[re.Match[str]]:
     """
     Ensure no words appear in unmatched text.
     """
 
-    def check_unmatched(unmatched):
+    def check_unmatched(unmatched) -> None:
         found = re.search(r'\w+', unmatched)
         if found:
             raise ValueError(f"Unexpected {found.group(0)!r}")
@@ -511,14 +515,14 @@ _unit_lookup = {
 }
 
 
-def _resolve_unit(raw_match):
+def _resolve_unit(raw_match) -> str:
     if raw_match is None:
         return 'second'
     text = raw_match.lower()
     return _unit_lookup.get(text, text)
 
 
-def _parse_timedelta_composite(raw_value, unit):
+def _parse_timedelta_composite(raw_value, unit) -> _Saved_NS:
     if unit != 'seconds':
         raise ValueError("Cannot specify units with composite delta")
     values = raw_value.split(':')
@@ -527,7 +531,7 @@ def _parse_timedelta_composite(raw_value, unit):
     return _parse_timedelta_nanos(composed)
 
 
-def _parse_timedelta_part(match):
+def _parse_timedelta_part(match) -> _Saved_NS:
     unit = _resolve_unit(match.group('unit'))
     if not unit.endswith('s'):
         unit += 's'
@@ -560,11 +564,11 @@ class _Saved_NS:
         microseconds=1000,
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         vars(self).update(kwargs)
 
     @classmethod
-    def derive(cls, unit, value):
+    def derive(cls, unit, value) -> _Saved_NS:
         if unit == 'nanoseconds':
             return _Saved_NS(nanoseconds=value)
 
@@ -595,7 +599,7 @@ class _Saved_NS:
         return f'_Saved_NS(td={self.td!r}, nanoseconds={self.nanoseconds!r})'
 
 
-def date_range(start=None, stop=None, step=None):
+def date_range(start=None, stop=None, step=None) -> Iterator[datetime.datetime]:
     """
     Much like the built-in function range, but works with dates
 
@@ -650,7 +654,7 @@ tzinfos = dict(
 )
 
 
-def parse(*args, **kwargs):
+def parse(*args, **kwargs) -> datetime.datetime:
     """
     Parse the input using dateutil.parser.parse with friendly tz support.
 
