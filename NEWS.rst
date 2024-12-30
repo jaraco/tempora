@@ -1,3 +1,12 @@
+v5.8.0
+======
+
+Features
+--------
+
+- Drop support for Python 3.8, now EOL.
+
+
 v5.7.1
 ======
 
