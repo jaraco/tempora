@@ -6,7 +6,7 @@ For example, to run a job at 08:00 every morning in 'Asia/Calcutta':
 >>> import zoneinfo
 >>> job = lambda: print("time is now", datetime.datetime())
 >>> time = datetime.time(8, tzinfo=zoneinfo.ZoneInfo('Asia/Calcutta'))
->>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
+>>> cmd = PeriodicCommandFixedDelay.daily_at(time, job, name="tmprint1")
 >>> sched = InvokeScheduler()
 >>> sched.add(cmd)
 >>> while True:  # doctest: +SKIP
@@ -21,6 +21,24 @@ and ``from_timestamp`` functions.
 datetime.datetime(...utc)
 >>> from_timestamp(1718723533.7685602)
 datetime.datetime(...utc)
+
+More complex command: custom attributes
+
+>>> def feed_the_dog(dog_name, food):
+...     print(f"Feed {dog_name} with {food}")
+
+>>> class CustomCommand(PeriodicCommandFixedDelay):
+...     def run(self):
+...         self.target(dog_name=self.dog_name, food=self.food)
+
+>>> time1 = datetime.time(13, 0, tzinfo=datetime.timezone.utc)
+>>> time2 = datetime.time(15, 0, tzinfo=datetime.timezone.utc)
+>>> time3 = datetime.time(16, 0, tzinfo=datetime.timezone.utc)
+>>> cmd2 = CustomCommand.daily_at(time1, feed_the_dog, name="feed Fido", dog_name='Fido', food="biscuits")
+>>> cmd3 = CustomCommand.daily_at(time2, feed_the_dog, name="water Fido", dog_name='Fido', food="water")
+>>> cmd4 = CustomCommand.daily_at(time3, feed_the_dog, name="feed Rex", dog_name='Rex', food="meat")
+>>> print(cmd2)
+<CustomCommand> feed Fido at 2025-01-13T13:00:00+00:00
 """
 
 from __future__ import annotations
@@ -46,9 +64,25 @@ class DelayedCommand(datetime.datetime):
     delay: datetime.timedelta = datetime.timedelta()
     target: Any  # Expected type depends on the scheduler used
 
+    def __init__(self, *args, **kwargs):
+        self._named_attrs = []
+
+    def _copy_attributes(self, other):
+        if hasattr(other, '_named_attrs'):
+            self._named_attrs = other._named_attrs
+            for aname in self._named_attrs:
+                value = getattr(other, aname, None)
+                setattr(self, aname, value)
+
+    def __str__(self):
+        taskname_add = ""
+        if 'name' in self._named_attrs:
+            taskname_add = f" {self.name}"
+        return f"<{self.__class__.__name__}>{taskname_add} at {self.isoformat()}"
+
     @classmethod
-    def from_datetime(cls, other) -> Self:
-        return cls(
+    def from_datetime(cls, other, **kwargs) -> Self:
+        cmd = cls(
             other.year,
             other.month,
             other.day,
@@ -58,13 +92,20 @@ class DelayedCommand(datetime.datetime):
             other.microsecond,
             other.tzinfo,
         )
+        if isinstance(other, DelayedCommand):
+            cmd._copy_attributes(other)
+        else:
+            for aname, avalue in kwargs.items():
+                setattr(cmd, aname, avalue)
+                cmd._named_attrs.append(aname)
+        return cmd
 
     @classmethod
-    def after(cls, delay, target) -> Self:
+    def after(cls, delay, target, **kwargs) -> Self:
         if not isinstance(delay, datetime.timedelta):
             delay = datetime.timedelta(seconds=delay)
         due_time = now() + delay
-        cmd = cls.from_datetime(due_time)
+        cmd = cls.from_datetime(due_time, **kwargs)
         cmd.delay = delay
         cmd.target = target
         return cmd
@@ -81,19 +122,22 @@ class DelayedCommand(datetime.datetime):
         return from_timestamp(input)
 
     @classmethod
-    def at_time(cls, at, target) -> Self:
+    def at_time(cls, at, target, **kwargs) -> Self:
         """
         Construct a DelayedCommand to come due at `at`, where `at` may be
         a datetime or timestamp.
         """
         at = cls._from_timestamp(at)
-        cmd = cls.from_datetime(at)
+        cmd = cls.from_datetime(at, **kwargs)
         cmd.delay = at - now()
         cmd.target = target
         return cmd
 
     def due(self) -> bool:
         return now() >= self
+
+    def run(self):
+        self.target()
 
 
 class PeriodicCommand(DelayedCommand):
@@ -112,6 +156,7 @@ class PeriodicCommand(DelayedCommand):
         cmd = self.__class__.from_datetime(self._next_time())
         cmd.delay = self.delay
         cmd.target = self.target
+        cmd._copy_attributes(self)
         return cmd
 
     def __setattr__(self, key, value) -> None:
@@ -128,14 +173,14 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
     """
 
     @classmethod
-    def at_time(cls, at, delay, target) -> Self:  # type: ignore[override] # jaraco/tempora#39
+    def at_time(cls, at, delay, target, **kwargs) -> Self:  # type: ignore[override] # jaraco/tempora#39
         """
         >>> cmd = PeriodicCommandFixedDelay.at_time(0, 30, None)
         >>> cmd.delay.total_seconds()
         30.0
         """
         at = cls._from_timestamp(at)
-        cmd = cls.from_datetime(at)
+        cmd = cls.from_datetime(at, **kwargs)
         if isinstance(delay, numbers.Number):
             delay = datetime.timedelta(seconds=delay)  # type: ignore[arg-type] # python/mypy#3186#issuecomment-1571512649
         cmd.delay = delay
@@ -143,7 +188,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         return cmd
 
     @classmethod
-    def daily_at(cls, at, target) -> Self:
+    def daily_at(cls, at, target, **kwargs) -> Self:
         """
         Schedule a command to run at a specific time each day.
 
@@ -159,7 +204,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         when -= daily
         while when < now():
             when += daily
-        return cls.at_time(when, daily, target)
+        return cls.at_time(when, daily, target, **kwargs)
 
 
 class Scheduler:
@@ -197,7 +242,7 @@ class InvokeScheduler(Scheduler):
     """
 
     def run(self, command: DelayedCommand) -> None:
-        command.target()
+        command.run()
 
 
 class CallbackScheduler(Scheduler):
@@ -211,3 +256,4 @@ class CallbackScheduler(Scheduler):
 
     def run(self, command: DelayedCommand) -> None:
         self.dispatch(command.target)
+        # self.dispatch(command.run)
