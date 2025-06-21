@@ -1,5 +1,5 @@
-import sys
 import operator
+import sys
 
 
 def pytest_collection_modifyitems(session, config, items):
