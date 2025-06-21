@@ -26,6 +26,7 @@ dependencies = [
 	"jaraco.functools>=4.2",
 	"python-dateutil",
 	"jaraco.context",
+	"more_itertools",
 ]
 dynamic = ["version"]
 
