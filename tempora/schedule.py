@@ -36,13 +36,12 @@ from __future__ import annotations
 import abc
 import bisect
 import datetime
-import itertools
 import numbers
 from typing import TYPE_CHECKING, Any
 
+from jaraco.collections import set_defaults
 from jaraco.context import suppress
 from jaraco.functools import passthrough  # type: ignore[attr-defined]
-from more_itertools import consume
 
 from .utc import fromtimestamp as from_timestamp
 from .utc import now
@@ -127,7 +126,7 @@ class PeriodicCommand(DelayedCommand):
         """
         Ensure any custom attributes from other are present on self.
         """
-        consume(itertools.starmap(vars(self).setdefault, vars(other).items()))
+        set_defaults(vars(self), **vars(other))
 
     def next(self) -> Self:
         cmd = self.__class__.from_datetime(self._next_time())
