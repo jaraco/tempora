@@ -23,8 +23,11 @@ classifiers = [
 requires-python = ">=3.9"
 license = "MIT"
 dependencies = [
-	"jaraco.functools>=1.20",
+	"jaraco.functools>=4.2",
 	"python-dateutil",
+	"jaraco.context",
+	"more_itertools",
+	"jaraco.collections>=5.2.1",
 ]
 dynamic = ["version"]
 
