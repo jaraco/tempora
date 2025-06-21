@@ -21,12 +21,21 @@ and ``from_timestamp`` functions.
 datetime.datetime(...utc)
 >>> from_timestamp(1718723533.7685602)
 datetime.datetime(...utc)
+
+Consumers may supply custom attributes to a command and those
+should be retained.
+
+>>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
+>>> cmd.name = 'my task name'
+>>> cmd.next().name
+'my task name'
 """
 
 from __future__ import annotations
 
 import abc
 import bisect
+import contextlib
 import datetime
 import numbers
 from typing import TYPE_CHECKING, Any
@@ -108,11 +117,20 @@ class PeriodicCommand(DelayedCommand):
         """
         return self + self.delay
 
+    def _reflect(self, other: Any) -> Self:
+        """
+        Ensure any custom attributes from other are present on self.
+        """
+        with contextlib.suppress(TypeError):
+            for name, val in vars(other).items():
+                vars(self).setdefault(name, val)
+        return self
+
     def next(self) -> Self:
         cmd = self.__class__.from_datetime(self._next_time())
         cmd.delay = self.delay
         cmd.target = self.target
-        return cmd
+        return cmd._reflect(self)
 
     def __setattr__(self, key, value) -> None:
         if key == 'delay' and not value > datetime.timedelta():
