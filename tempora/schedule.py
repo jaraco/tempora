@@ -35,10 +35,12 @@ from __future__ import annotations
 
 import abc
 import bisect
-import contextlib
 import datetime
 import numbers
 from typing import TYPE_CHECKING, Any
+
+from jaraco.context import suppress
+from jaraco.functools import passthrough  # type: ignore[attr-defined]
 
 from .utc import fromtimestamp as from_timestamp
 from .utc import now
@@ -117,14 +119,14 @@ class PeriodicCommand(DelayedCommand):
         """
         return self + self.delay
 
-    def _reflect(self, other: Any) -> Self:
+    @passthrough
+    @suppress(TypeError)
+    def _reflect(self, other: Any) -> Self:  # type: ignore[return]
         """
         Ensure any custom attributes from other are present on self.
         """
-        with contextlib.suppress(TypeError):
-            for name, val in vars(other).items():
-                vars(self).setdefault(name, val)
-        return self
+        for name, val in vars(other).items():
+            vars(self).setdefault(name, val)
 
     def next(self) -> Self:
         cmd = self.__class__.from_datetime(self._next_time())
