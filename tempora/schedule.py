@@ -7,6 +7,8 @@ For example, to run a job at 08:00 every morning in 'Asia/Calcutta':
 >>> job = lambda: print("time is now", datetime.datetime())
 >>> time = datetime.time(8, tzinfo=zoneinfo.ZoneInfo('Asia/Calcutta'))
 >>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
+>>> print(cmd)
+PeriodicCommandFixedDelay: <function <lambda> at ...> at 2...T08:00:00+05:30
 >>> sched = InvokeScheduler()
 >>> sched.add(cmd)
 >>> while True:  # doctest: +SKIP
@@ -94,6 +96,9 @@ class DelayedCommand(datetime.datetime):
 
     def due(self) -> bool:
         return now() >= self
+
+    def __str__(self):
+        return f"{self.__class__.__name__}: {self.target} at {self.isoformat()}"
 
 
 class PeriodicCommand(DelayedCommand):
