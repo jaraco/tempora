@@ -16,7 +16,7 @@ import numbers
 import re
 import time
 from collections.abc import Iterable, Iterator, Sequence
-from typing import TYPE_CHECKING, Tuple, Union, cast
+from typing import TYPE_CHECKING, Union, cast
 
 import dateutil.parser
 import dateutil.tz
@@ -56,7 +56,7 @@ def _needs_year_help() -> bool:
 
 
 AnyDatetime: TypeAlias = Union[datetime.datetime, datetime.date, datetime.time]
-StructDatetime: TypeAlias = Union[Tuple[int, ...], time.struct_time]
+StructDatetime: TypeAlias = Union[tuple[int, ...], time.struct_time]
 
 
 def ensure_datetime(ob: AnyDatetime) -> datetime.datetime:
