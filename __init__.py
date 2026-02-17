@@ -16,13 +16,13 @@ import numbers
 import re
 import time
 from collections.abc import Iterable, Iterator, Sequence
-from typing import TYPE_CHECKING, Union, cast
+from typing import TYPE_CHECKING, cast
 
 import dateutil.parser
 import dateutil.tz
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
 # some useful constants
 osc_per_year = 290_091_329_207_984_000
@@ -55,8 +55,8 @@ def _needs_year_help() -> bool:
     return len(datetime.date(900, 1, 1).strftime('%Y')) != 4
 
 
-AnyDatetime: TypeAlias = Union[datetime.datetime, datetime.date, datetime.time]
-StructDatetime: TypeAlias = Union[tuple[int, ...], time.struct_time]
+AnyDatetime: TypeAlias = datetime.datetime | datetime.date | datetime.time
+StructDatetime: TypeAlias = tuple[int, ...] | time.struct_time
 
 
 def ensure_datetime(ob: AnyDatetime) -> datetime.datetime:

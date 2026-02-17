@@ -5,7 +5,6 @@ import time
 from unittest import mock
 
 import pytest
-
 from tempora import timing
 
 
