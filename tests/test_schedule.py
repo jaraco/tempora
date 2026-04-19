@@ -12,6 +12,16 @@ from tempora import schedule
 do_nothing = type(None)
 
 
+class DelayedCommandCustom1(schedule.DelayedCommand):
+    def run(self):
+        self.target(param1=self.param1, param2=self.param2)
+
+
+class PeriodicCommandFixedDelayCustom1(schedule.PeriodicCommandFixedDelay):
+    def run(self):
+        self.target(param1=self.param1, param2=self.param2)
+
+
 def test_delayed_command_order():
     """
     delayed commands should be sorted by delay time
@@ -56,6 +66,40 @@ class TestCommands:
         cmd = schedule.PeriodicCommandFixedDelay.daily_at(when, target=None)
         assert cmd.due() is False
         next_cmd = cmd.next()
+        daily = datetime.timedelta(days=1)
+        day_from_now = schedule.now() + daily
+        two_days_from_now = day_from_now + daily
+        assert day_from_now < next_cmd < two_days_from_now
+
+    @pytest.mark.parametrize("hour", range(10, 14))
+    @pytest.mark.parametrize("tz_offset", (14, -14))
+    def test_command_at_noon_distant_local(self, hour, tz_offset):
+        """
+        Run test_command_at_noon, but with the local timezone
+        more than 12 hours away from UTC.
+        """
+        with freezegun.freeze_time(f"2020-01-10 {hour:02}:01", tz_offset=tz_offset):
+            self.test_command_at_noon()
+
+
+class TestCommandAttributes:
+    def test_delayed_command_from_timestamp(self):
+        """
+        Ensure a delayed command can be constructed from a timestamp.
+        """
+        t = time.time()
+        DelayedCommandCustom1.at_time(t, do_nothing, param1='param1', param2='param2')
+
+    def test_command_at_noon(self):
+        """
+        Create a periodic command that's run at noon every day.
+        """
+        when = datetime.time(12, 0, tzinfo=zoneinfo.ZoneInfo('UTC'))
+        cmd = PeriodicCommandFixedDelayCustom1.daily_at(when, target=None, param1='param1', param2='param2')
+        assert cmd.due() is False
+        next_cmd = cmd.next()
+        assert cmd.param1 == next_cmd.param1 == 'param1'
+        assert cmd.param2 == next_cmd.param2 == 'param2'
         daily = datetime.timedelta(days=1)
         day_from_now = schedule.now() + daily
         two_days_from_now = day_from_now + daily
@@ -137,7 +181,7 @@ class TestScheduler:
         cmd = schedule.DelayedCommand.after(0, target)
         sched.add(cmd)
         sched.run_pending()
-        callback.assert_called_once_with(target)
+        callback.assert_called_once()  # NOTE: This does not verify that the `target` had been ever passed to callback!
 
     def test_periodic_command(self):
         sched = schedule.InvokeScheduler()
@@ -158,3 +202,11 @@ class TestScheduler:
         with freezegun.freeze_time(before + datetime.timedelta(seconds=25)):
             sched.run_pending()
         assert target.call_count == 2
+
+    def test_invoke_scheduler_custom_attrs(self):
+        sched = schedule.InvokeScheduler()
+        target = mock.MagicMock()
+        cmd = DelayedCommandCustom1.after(0, target, param1="param1", param2="param2")
+        sched.add(cmd)
+        sched.run_pending()
+        target.assert_called_once_with(param1="param1", param2="param2")
