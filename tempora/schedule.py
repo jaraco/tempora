@@ -21,6 +21,14 @@ and ``from_timestamp`` functions.
 datetime.datetime(...utc)
 >>> from_timestamp(1718723533.7685602)
 datetime.datetime(...utc)
+
+Consumers may supply custom attributes to a command and those
+should be retained.
+
+>>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
+>>> cmd.name = 'my task name'
+>>> cmd.next().name
+'my task name'
 """
 
 from __future__ import annotations
@@ -30,6 +38,10 @@ import bisect
 import datetime
 import numbers
 from typing import TYPE_CHECKING, Any
+
+from jaraco.collections import set_defaults
+from jaraco.context import suppress
+from jaraco.functools import passthrough  # type: ignore[attr-defined]
 
 from .utc import fromtimestamp as from_timestamp
 from .utc import now
@@ -108,11 +120,19 @@ class PeriodicCommand(DelayedCommand):
         """
         return self + self.delay
 
+    @passthrough
+    @suppress(TypeError)
+    def _reflect(self, other: Any) -> Self:  # type: ignore[return]
+        """
+        Ensure any custom attributes from other are present on self.
+        """
+        set_defaults(vars(self), **vars(other))
+
     def next(self) -> Self:
         cmd = self.__class__.from_datetime(self._next_time())
         cmd.delay = self.delay
         cmd.target = self.target
-        return cmd
+        return cmd._reflect(self)
 
     def __setattr__(self, key, value) -> None:
         if key == 'delay' and not value > datetime.timedelta():
