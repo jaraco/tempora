@@ -10,7 +10,7 @@ import pytest
 from tempora import timing
 
 
-def test_IntervalGovernor() -> None:
+def test_IntervalGovernor():
     """
     IntervalGovernor should prevent a function from being called more than
     once per interval.
@@ -44,7 +44,7 @@ def alt_tz(monkeypatch: pytest.MonkeyPatch) -> contextlib.AbstractContextManager
 
 def test_Stopwatch_timezone_change(
     alt_tz: contextlib.AbstractContextManager[None],
-) -> None:
+):
     """
     The stopwatch should provide a consistent duration even
     if the timezone changes.

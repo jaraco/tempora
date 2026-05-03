@@ -47,7 +47,7 @@ from jaraco.context import suppress
 from jaraco.functools import passthrough  # type: ignore[attr-defined]
 
 from .utc import fromtimestamp as from_timestamp
-from .utc import now
+from .utc import now as now
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -155,12 +155,12 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
     """
 
     @classmethod
-    def at_time(
+    def at_time(  # type: ignore[override] # jaraco/tempora#39
         cls,
         at: datetime.datetime | float,
         delay: datetime.timedelta | numbers.Number,
         target: Any,
-    ) -> Self:  # type: ignore[override] # jaraco/tempora#39
+    ) -> Self:
         """
         >>> cmd = PeriodicCommandFixedDelay.at_time(0, 30, None)
         >>> cmd.delay.total_seconds()
