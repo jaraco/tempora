@@ -155,7 +155,12 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
     """
 
     @classmethod
-    def at_time(cls, at: datetime.datetime | numbers.Real, delay: datetime.timedelta | numbers.Number, target: Any) -> Self:  # type: ignore[override] # jaraco/tempora#39
+    def at_time(
+        cls,
+        at: datetime.datetime | numbers.Real,
+        delay: datetime.timedelta | numbers.Number,
+        target: Any,
+    ) -> Self:  # type: ignore[override] # jaraco/tempora#39
         """
         >>> cmd = PeriodicCommandFixedDelay.at_time(0, 30, None)
         >>> cmd.delay.total_seconds()

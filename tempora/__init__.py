@@ -150,7 +150,11 @@ def strftime(fmt: str, t: AnyDatetime | tuple[int, ...] | time.struct_time) -> s
     return t.strftime(fmt)
 
 
-def datetime_mod(dt: datetime.datetime, period: datetime.timedelta, start: datetime.datetime | None = None) -> datetime.datetime:
+def datetime_mod(
+    dt: datetime.datetime,
+    period: datetime.timedelta,
+    start: datetime.datetime | None = None,
+) -> datetime.datetime:
     """
     Find the time which is the specified date/time truncated to the time delta
     relative to the start date/time.
@@ -194,7 +198,11 @@ def datetime_mod(dt: datetime.datetime, period: datetime.timedelta, start: datet
     return result
 
 
-def datetime_round(dt: datetime.datetime, period: datetime.timedelta, start: datetime.datetime | None = None) -> datetime.datetime:
+def datetime_round(
+    dt: datetime.datetime,
+    period: datetime.timedelta,
+    start: datetime.datetime | None = None,
+) -> datetime.datetime:
     """
     Find the nearest even period for the specified date/time.
 
@@ -466,7 +474,9 @@ def _parse_timedelta_nanos(str: str) -> _Saved_NS:
     return sum(deltas, _Saved_NS())
 
 
-def _check_unmatched(matches: Iterable[re.Match[str]], text: str) -> Iterator[re.Match[str]]:
+def _check_unmatched(
+    matches: Iterable[re.Match[str]], text: str
+) -> Iterator[re.Match[str]]:
     """
     Ensure no words appear in unmatched text.
     """
@@ -658,4 +668,6 @@ def parse(*args: Any, **kwargs: Any) -> datetime.datetime:
     >>> parse('2024-07-26 12:59:00 EDT')
     datetime.datetime(...America/New_York...)
     """
-    return cast(datetime.datetime, dateutil.parser.parse(*args, tzinfos=tzinfos, **kwargs))
+    return cast(
+        datetime.datetime, dateutil.parser.parse(*args, tzinfos=tzinfos, **kwargs)
+    )

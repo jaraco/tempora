@@ -100,7 +100,9 @@ class IntervalGovernor:
         self.min_interval = min_interval
         self.last_call: Stopwatch | None = None
 
-    def decorate(self, func: collections.abc.Callable[..., Any]) -> collections.abc.Callable[..., Any]:
+    def decorate(
+        self, func: collections.abc.Callable[..., Any]
+    ) -> collections.abc.Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             allow = not self.last_call or self.last_call.split() > self.min_interval
@@ -125,7 +127,9 @@ class Timer(Stopwatch):
     True
     """
 
-    def __init__(self, target: float | datetime.timedelta | None = float('Inf')) -> None:
+    def __init__(
+        self, target: float | datetime.timedelta | None = float('Inf')
+    ) -> None:
         self.target = self._accept(target)
         super().__init__()
 
