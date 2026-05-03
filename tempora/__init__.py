@@ -668,6 +668,4 @@ def parse(*args: Any, **kwargs: Any) -> datetime.datetime:
     >>> parse('2024-07-26 12:59:00 EDT')
     datetime.datetime(...America/New_York...)
     """
-    return cast(
-        datetime.datetime, dateutil.parser.parse(*args, tzinfos=tzinfos, **kwargs)
-    )
+    return dateutil.parser.parse(*args, tzinfos=tzinfos, **kwargs)
