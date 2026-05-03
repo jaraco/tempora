@@ -31,6 +31,31 @@ should be retained.
 >>> cmd.name = 'my task name'
 >>> cmd.next().name
 'my task name'
+
+Alternatively, to associate custom context (such as a name) with
+a command, implement the target as a callable class whose
+``__str__`` describes it. The name then naturally carries through
+``next()`` as part of the target itself:
+
+>>> class NamedTask:
+...     def __init__(self, name, func):
+...         self.name = name
+...         self.func = func
+...     def __str__(self):
+...         return self.name
+...     def __call__(self):
+...         return self.func()
+>>> cmd = PeriodicCommandFixedDelay.daily_at(time, NamedTask('my task name', job))
+>>> print(cmd)
+PeriodicCommandFixedDelay: my task name at 2...T08:00:00+05:30
+
+To bind arguments to the target function, use ``functools.partial``:
+
+>>> import functools
+>>> def greet(whom): print(f"Hello, {whom}!")
+>>> cmd = PeriodicCommandFixedDelay.daily_at(time, functools.partial(greet, 'world'))
+>>> cmd.target()
+Hello, world!
 """
 
 from __future__ import annotations
