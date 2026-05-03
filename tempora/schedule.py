@@ -85,18 +85,18 @@ class DelayedCommand(datetime.datetime):
         return cmd
 
     @staticmethod
-    def _from_timestamp(input: datetime.datetime | numbers.Real) -> datetime.datetime:
+    def _from_timestamp(input: datetime.datetime | float) -> datetime.datetime:
         """
         If input is a real number, interpret it as a Unix timestamp
         (seconds sinc Epoch in UTC) and return a timezone-aware
         datetime object. Otherwise return input unchanged.
         """
-        if not isinstance(input, numbers.Real):
+        if isinstance(input, datetime.datetime):
             return input
-        return from_timestamp(float(input))
+        return from_timestamp(input)
 
     @classmethod
-    def at_time(cls, at: datetime.datetime | numbers.Real, target: Any) -> Self:
+    def at_time(cls, at: datetime.datetime | float, target: Any) -> Self:
         """
         Construct a DelayedCommand to come due at `at`, where `at` may be
         a datetime or timestamp.
@@ -157,7 +157,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
     @classmethod
     def at_time(
         cls,
-        at: datetime.datetime | numbers.Real,
+        at: datetime.datetime | float,
         delay: datetime.timedelta | numbers.Number,
         target: Any,
     ) -> Self:  # type: ignore[override] # jaraco/tempora#39
