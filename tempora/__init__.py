@@ -191,8 +191,8 @@ def datetime_mod(
     def get_time_delta_microseconds(td: datetime.timedelta) -> int:
         return (td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
 
-    delta_us, period_us = map(get_time_delta_microseconds, (delta, period))
-    offset = datetime.timedelta(microseconds=delta_us % period_us)
+    delta, period = map(get_time_delta_microseconds, (delta, period))  # type: ignore[assignment]
+    offset = datetime.timedelta(microseconds=delta % period)  # type: ignore[arg-type]
     # the result is the original specified time minus the offset
     result = dt - offset
     return result
