@@ -619,7 +619,7 @@ def date_range(
         step = datetime.timedelta(days=1)
     if start is None:
         start = datetime.datetime.now()
-    while start < stop:  # type: ignore[operator]
+    while start < stop:  # type: ignore[operator]  # stop may be None if not provided
         yield start
         start += step
 
