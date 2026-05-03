@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import abc
 import bisect
+import collections.abc
 import datetime
 import numbers
 from typing import TYPE_CHECKING, Any
@@ -61,7 +62,7 @@ class DelayedCommand(datetime.datetime):
     target: Any  # Expected type depends on the scheduler used
 
     @classmethod
-    def from_datetime(cls, other) -> Self:
+    def from_datetime(cls, other: datetime.datetime) -> Self:
         return cls(
             other.year,
             other.month,
@@ -74,7 +75,7 @@ class DelayedCommand(datetime.datetime):
         )
 
     @classmethod
-    def after(cls, delay, target) -> Self:
+    def after(cls, delay: datetime.timedelta | float, target: Any) -> Self:
         if not isinstance(delay, datetime.timedelta):
             delay = datetime.timedelta(seconds=delay)
         due_time = now() + delay
@@ -84,7 +85,7 @@ class DelayedCommand(datetime.datetime):
         return cmd
 
     @staticmethod
-    def _from_timestamp(input):
+    def _from_timestamp(input: datetime.datetime | numbers.Real) -> datetime.datetime:
         """
         If input is a real number, interpret it as a Unix timestamp
         (seconds sinc Epoch in UTC) and return a timezone-aware
@@ -92,10 +93,10 @@ class DelayedCommand(datetime.datetime):
         """
         if not isinstance(input, numbers.Real):
             return input
-        return from_timestamp(input)
+        return from_timestamp(float(input))
 
     @classmethod
-    def at_time(cls, at, target) -> Self:
+    def at_time(cls, at: datetime.datetime | numbers.Real, target: Any) -> Self:
         """
         Construct a DelayedCommand to come due at `at`, where `at` may be
         a datetime or timestamp.
@@ -109,7 +110,7 @@ class DelayedCommand(datetime.datetime):
     def due(self) -> bool:
         return now() >= self
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.__class__.__name__}: {self.target} at {self.isoformat()}"
 
 
@@ -125,7 +126,7 @@ class PeriodicCommand(DelayedCommand):
         """
         return self + self.delay
 
-    @passthrough
+    @passthrough  # type: ignore[untyped-decorator]
     @suppress(TypeError)
     def _reflect(self, other: Any) -> Self:  # type: ignore[return]
         """
@@ -137,9 +138,10 @@ class PeriodicCommand(DelayedCommand):
         cmd = self.__class__.from_datetime(self._next_time())
         cmd.delay = self.delay
         cmd.target = self.target
-        return cmd._reflect(self)
+        reflected: Self = cmd._reflect(self)
+        return reflected
 
-    def __setattr__(self, key, value) -> None:
+    def __setattr__(self, key: str, value: Any) -> None:
         if key == 'delay' and not value > datetime.timedelta():
             raise ValueError("A PeriodicCommand must have a positive, non-zero delay.")
         super().__setattr__(key, value)
@@ -153,7 +155,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
     """
 
     @classmethod
-    def at_time(cls, at, delay, target) -> Self:  # type: ignore[override] # jaraco/tempora#39
+    def at_time(cls, at: datetime.datetime | numbers.Real, delay: datetime.timedelta | numbers.Number, target: Any) -> Self:  # type: ignore[override] # jaraco/tempora#39
         """
         >>> cmd = PeriodicCommandFixedDelay.at_time(0, 30, None)
         >>> cmd.delay.total_seconds()
@@ -168,7 +170,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         return cmd
 
     @classmethod
-    def daily_at(cls, at, target) -> Self:
+    def daily_at(cls, at: datetime.time, target: Any) -> Self:
         """
         Schedule a command to run at a specific time each day.
 
@@ -230,7 +232,7 @@ class CallbackScheduler(Scheduler):
     Command targets are passed to a dispatch callable on schedule.
     """
 
-    def __init__(self, dispatch) -> None:
+    def __init__(self, dispatch: collections.abc.Callable[..., Any]) -> None:
         super().__init__()
         self.dispatch = dispatch
 

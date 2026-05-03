@@ -9,7 +9,7 @@ import numbers
 import re
 import time
 from collections.abc import Iterable, Iterator, Sequence
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import dateutil.parser
 import dateutil.tz
@@ -75,7 +75,7 @@ def infer_datetime(ob: AnyDatetime | StructDatetime) -> datetime.datetime:
     return ensure_datetime(ob)
 
 
-def strftime(fmt: str, t: AnyDatetime | tuple | time.struct_time) -> str:
+def strftime(fmt: str, t: AnyDatetime | tuple[int, ...] | time.struct_time) -> str:
     """
     Portable strftime.
 
@@ -140,17 +140,17 @@ def strftime(fmt: str, t: AnyDatetime | tuple | time.struct_time) -> str:
         ('%µ', '%03d' % (t.microsecond % 1000)),
     ) + (('%Y', '%04d' % t.year),) * _needs_year_help()
 
-    def doSub(s, sub):
+    def doSub(s: str, sub: tuple[str, str]) -> str:
         return s.replace(*sub)
 
-    def doSubs(s):
+    def doSubs(s: str) -> str:
         return functools.reduce(doSub, subs, s)
 
     fmt = '%%'.join(map(doSubs, fmt.split('%%')))
     return t.strftime(fmt)
 
 
-def datetime_mod(dt: datetime.datetime, period, start=None) -> datetime.datetime:
+def datetime_mod(dt: datetime.datetime, period: datetime.timedelta, start: datetime.datetime | None = None) -> datetime.datetime:
     """
     Find the time which is the specified date/time truncated to the time delta
     relative to the start date/time.
@@ -184,17 +184,17 @@ def datetime_mod(dt: datetime.datetime, period, start=None) -> datetime.datetime
     # Use microseconds because that's the highest precision of these time
     # pieces.  Also, using microseconds ensures perfect precision (no floating
     # point errors).
-    def get_time_delta_microseconds(td):
+    def get_time_delta_microseconds(td: datetime.timedelta) -> int:
         return (td.days * seconds_per_day + td.seconds) * 1000000 + td.microseconds
 
-    delta, period = map(get_time_delta_microseconds, (delta, period))
-    offset = datetime.timedelta(microseconds=delta % period)
+    delta_us, period_us = map(get_time_delta_microseconds, (delta, period))
+    offset = datetime.timedelta(microseconds=delta_us % period_us)
     # the result is the original specified time minus the offset
     result = dt - offset
     return result
 
 
-def datetime_round(dt, period: datetime.timedelta, start=None) -> datetime.datetime:
+def datetime_round(dt: datetime.datetime, period: datetime.timedelta, start: datetime.datetime | None = None) -> datetime.datetime:
     """
     Find the nearest even period for the specified date/time.
 
@@ -214,7 +214,7 @@ def datetime_round(dt, period: datetime.timedelta, start=None) -> datetime.datet
     return result
 
 
-def get_nearest_year_for_day(day) -> int:
+def get_nearest_year_for_day(day: int) -> int:
     """
     Returns the nearest year to now inferred from a Julian date.
 
@@ -239,7 +239,7 @@ def get_nearest_year_for_day(day) -> int:
     return result
 
 
-def gregorian_date(year, julian_day) -> datetime.date:
+def gregorian_date(year: int, julian_day: int) -> datetime.date:
     """
     Gregorian Date is defined as a year and a julian day (1-based
     index into the days of the year).
@@ -252,7 +252,7 @@ def gregorian_date(year, julian_day) -> datetime.date:
     return result
 
 
-def get_period_seconds(period) -> int:
+def get_period_seconds(period: str | numbers.Number | datetime.timedelta) -> int:
     """
     return the number of seconds in the specified period
 
@@ -270,12 +270,12 @@ def get_period_seconds(period) -> int:
     if isinstance(period, str):
         try:
             name = 'seconds_per_' + period.lower()
-            result = globals()[name]
+            result = cast(int, globals()[name])
         except KeyError:
             msg = "period not in (second, minute, hour, day, month, year)"
             raise ValueError(msg)
     elif isinstance(period, numbers.Number):
-        result = period
+        result = cast(int, period)
     elif isinstance(period, datetime.timedelta):
         result = period.days * get_period_seconds('day') + period.seconds
     else:
@@ -283,7 +283,7 @@ def get_period_seconds(period) -> int:
     return result
 
 
-def get_date_format_string(period) -> str:
+def get_date_format_string(period: str | numbers.Number | datetime.timedelta) -> str:
     """
     For a given period (e.g. 'month', 'day', or some numeric interval
     such as 3600 (in secs)), return the format string that can be
@@ -357,7 +357,7 @@ def _prorated_values(rate: str) -> Iterator[tuple[str, float]]:
 
     """
     match = re.match(r'(?P<value>[\d.]+)/(?P<period>\w+)$', rate)
-    res = cast(re.Match, match).groupdict()
+    res = cast(re.Match[str], match).groupdict()
     value = float(res['value'])
     value_per_second = value / get_period_seconds(res['period'])
     for period in ('minute', 'hour', 'day', 'month', 'year'):
@@ -365,7 +365,7 @@ def _prorated_values(rate: str) -> Iterator[tuple[str, float]]:
         yield period, period_value
 
 
-def parse_timedelta(str) -> datetime.timedelta:
+def parse_timedelta(str: str) -> datetime.timedelta:
     """
     Take a string representing a span of time and parse it to a time delta.
     Accepts any string of comma-separated numbers each with a unit indicator.
@@ -459,19 +459,19 @@ def parse_timedelta(str) -> datetime.timedelta:
     return _parse_timedelta_nanos(str).resolve()
 
 
-def _parse_timedelta_nanos(str) -> _Saved_NS:
+def _parse_timedelta_nanos(str: str) -> _Saved_NS:
     parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>[^\W\d_]+)?', str)
     chk_parts = _check_unmatched(parts, str)
     deltas = map(_parse_timedelta_part, chk_parts)
     return sum(deltas, _Saved_NS())
 
 
-def _check_unmatched(matches: Iterable[re.Match[str]], text) -> Iterator[re.Match[str]]:
+def _check_unmatched(matches: Iterable[re.Match[str]], text: str) -> Iterator[re.Match[str]]:
     """
     Ensure no words appear in unmatched text.
     """
 
-    def check_unmatched(unmatched) -> None:
+    def check_unmatched(unmatched: str) -> None:
         found = re.search(r'\w+', unmatched)
         if found:
             raise ValueError(f"Unexpected {found.group(0)!r}")
@@ -508,14 +508,14 @@ _unit_lookup = {
 }
 
 
-def _resolve_unit(raw_match) -> str:
+def _resolve_unit(raw_match: str | None) -> str:
     if raw_match is None:
         return 'second'
     text = raw_match.lower()
     return _unit_lookup.get(text, text)
 
 
-def _parse_timedelta_composite(raw_value, unit) -> _Saved_NS:
+def _parse_timedelta_composite(raw_value: str, unit: str) -> _Saved_NS:
     if unit != 'seconds':
         raise ValueError("Cannot specify units with composite delta")
     values = raw_value.split(':')
@@ -524,7 +524,7 @@ def _parse_timedelta_composite(raw_value, unit) -> _Saved_NS:
     return _parse_timedelta_nanos(composed)
 
 
-def _parse_timedelta_part(match) -> _Saved_NS:
+def _parse_timedelta_part(match: re.Match[str]) -> _Saved_NS:
     unit = _resolve_unit(match.group('unit'))
     if not unit.endswith('s'):
         unit += 's'
@@ -557,11 +557,11 @@ class _Saved_NS:
         microseconds=1000,
     )
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         vars(self).update(kwargs)
 
     @classmethod
-    def derive(cls, unit, value) -> _Saved_NS:
+    def derive(cls, unit: str, value: float) -> _Saved_NS:
         if unit == 'nanoseconds':
             return _Saved_NS(nanoseconds=value)
 
@@ -574,12 +574,12 @@ class _Saved_NS:
             res.nanoseconds = int(value * cls.multiplier[unit]) % 1000
         return res
 
-    def __add__(self, other):
+    def __add__(self, other: _Saved_NS) -> _Saved_NS:
         return _Saved_NS(
             td=self.td + other.td, nanoseconds=self.nanoseconds + other.nanoseconds
         )
 
-    def resolve(self):
+    def resolve(self) -> datetime.timedelta:
         """
         Resolve any nanoseconds into the microseconds field,
         discarding any nanosecond resolution (but honoring partial
@@ -588,11 +588,15 @@ class _Saved_NS:
         addl_micros = round(self.nanoseconds / 1000)
         return self.td + datetime.timedelta(microseconds=addl_micros)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'_Saved_NS(td={self.td!r}, nanoseconds={self.nanoseconds!r})'
 
 
-def date_range(start=None, stop=None, step=None) -> Iterator[datetime.datetime]:
+def date_range(
+    start: datetime.datetime | None = None,
+    stop: datetime.datetime | None = None,
+    step: datetime.timedelta | None = None,
+) -> Iterator[datetime.datetime]:
     """
     Much like the built-in function range, but works with dates
 
@@ -615,7 +619,7 @@ def date_range(start=None, stop=None, step=None) -> Iterator[datetime.datetime]:
         step = datetime.timedelta(days=1)
     if start is None:
         start = datetime.datetime.now()
-    while start < stop:
+    while start < stop:  # type: ignore[operator]
         yield start
         start += step
 
@@ -647,11 +651,11 @@ tzinfos = dict(
 )
 
 
-def parse(*args, **kwargs) -> datetime.datetime:
+def parse(*args: Any, **kwargs: Any) -> datetime.datetime:
     """
     Parse the input using dateutil.parser.parse with friendly tz support.
 
     >>> parse('2024-07-26 12:59:00 EDT')
     datetime.datetime(...America/New_York...)
     """
-    return dateutil.parser.parse(*args, tzinfos=tzinfos, **kwargs)
+    return cast(datetime.datetime, dateutil.parser.parse(*args, tzinfos=tzinfos, **kwargs))
