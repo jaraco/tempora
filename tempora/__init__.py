@@ -260,7 +260,7 @@ def gregorian_date(year: int, julian_day: int) -> datetime.date:
     return result
 
 
-def get_period_seconds(period: str | numbers.Number | datetime.timedelta) -> int:
+def get_period_seconds(period: str | numbers.Number | datetime.timedelta) -> numbers.Number:
     """
     return the number of seconds in the specified period
 
@@ -278,14 +278,14 @@ def get_period_seconds(period: str | numbers.Number | datetime.timedelta) -> int
     if isinstance(period, str):
         try:
             name = 'seconds_per_' + period.lower()
-            result = cast(int, globals()[name])
+            result = cast(numbers.Number, globals()[name])
         except KeyError:
             msg = "period not in (second, minute, hour, day, month, year)"
             raise ValueError(msg)
     elif isinstance(period, numbers.Number):
-        result = cast(int, period)
+        result = period
     elif isinstance(period, datetime.timedelta):
-        result = period.days * get_period_seconds('day') + period.seconds
+        result = period.days * get_period_seconds('day') + period.seconds  # type: ignore[operator, assignment]
     else:
         raise TypeError('period must be a string or integer')
     return result
@@ -328,7 +328,7 @@ def get_date_format_string(period: str | numbers.Number | datetime.timedelta) ->
         seconds_per_minute,
         seconds_per_second,
     )
-    mods = list(map(lambda interval: file_period_secs % interval, intervals))
+    mods = list(map(lambda interval: file_period_secs % interval, intervals))  # type: ignore[operator]
     format_pieces = format_pieces[: mods.index(0) + 1]
     return ''.join(format_pieces)
 
@@ -367,9 +367,9 @@ def _prorated_values(rate: str) -> Iterator[tuple[str, float]]:
     match = re.match(r'(?P<value>[\d.]+)/(?P<period>\w+)$', rate)
     res = cast(re.Match[str], match).groupdict()
     value = float(res['value'])
-    value_per_second = value / get_period_seconds(res['period'])
+    value_per_second = value / get_period_seconds(res['period'])  # type: ignore[operator]
     for period in ('minute', 'hour', 'day', 'month', 'year'):
-        period_value = value_per_second * get_period_seconds(period)
+        period_value = value_per_second * get_period_seconds(period)  # type: ignore[operator]
         yield period, period_value
 
 

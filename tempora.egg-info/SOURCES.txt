@@ -18,6 +18,7 @@ tox.ini
 docs/conf.py
 docs/history.rst
 docs/index.rst
+docs/__pycache__/conf.cpython-312.pyc
 newsfragments/+a22f5957.feature.rst
 newsfragments/40.feature.rst
 tempora/__init__.py
@@ -30,5 +31,11 @@ tempora.egg-info/dependency_links.txt
 tempora.egg-info/entry_points.txt
 tempora.egg-info/requires.txt
 tempora.egg-info/top_level.txt
+tempora/__pycache__/__init__.cpython-312.pyc
+tempora/__pycache__/schedule.cpython-312.pyc
+tempora/__pycache__/timing.cpython-312.pyc
+tempora/__pycache__/utc.cpython-312.pyc
 tests/test_schedule.py
 tests/test_timing.py
+tests/__pycache__/test_schedule.cpython-312-pytest-9.0.3.pyc
+tests/__pycache__/test_timing.cpython-312-pytest-9.0.3.pyc
