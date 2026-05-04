@@ -260,7 +260,9 @@ def gregorian_date(year: int, julian_day: int) -> datetime.date:
     return result
 
 
-def get_period_seconds(period: str | numbers.Number | datetime.timedelta) -> numbers.Number:
+def get_period_seconds(
+    period: str | numbers.Number | datetime.timedelta,
+) -> numbers.Number:
     """
     return the number of seconds in the specified period
 
