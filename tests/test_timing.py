@@ -2,6 +2,7 @@ import contextlib
 import datetime
 import os
 import time
+from collections.abc import Generator
 from unittest import mock
 
 import pytest
@@ -9,7 +10,7 @@ import pytest
 from tempora import timing
 
 
-def test_IntervalGovernor():
+def test_IntervalGovernor() -> None:
     """
     IntervalGovernor should prevent a function from being called more than
     once per interval.
@@ -26,11 +27,11 @@ def test_IntervalGovernor():
 
 
 @pytest.fixture
-def alt_tz(monkeypatch):
+def alt_tz(monkeypatch: pytest.MonkeyPatch) -> contextlib.AbstractContextManager[None]:
     hasattr(time, 'tzset') or pytest.skip("tzset not available")
 
     @contextlib.contextmanager
-    def change():
+    def change() -> Generator[None, None, None]:
         val = 'AEST-10AEDT-11,M10.5.0,M3.5.0'
         with monkeypatch.context() as ctx:
             ctx.setitem(os.environ, 'TZ', val)
@@ -41,7 +42,9 @@ def alt_tz(monkeypatch):
     return change()
 
 
-def test_Stopwatch_timezone_change(alt_tz):
+def test_Stopwatch_timezone_change(
+    alt_tz: contextlib.AbstractContextManager[None],
+) -> None:
     """
     The stopwatch should provide a consistent duration even
     if the timezone changes.
