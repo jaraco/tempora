@@ -35,9 +35,9 @@ def alt_tz(monkeypatch: pytest.MonkeyPatch) -> contextlib.AbstractContextManager
         val = 'AEST-10AEDT-11,M10.5.0,M3.5.0'
         with monkeypatch.context() as ctx:
             ctx.setitem(os.environ, 'TZ', val)
-            time.tzset()
+            getattr(time, 'tzset')()
             yield
-        time.tzset()
+        getattr(time, 'tzset')()
 
     return change()
 
