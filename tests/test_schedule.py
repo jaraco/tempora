@@ -12,7 +12,7 @@ from tempora import schedule
 do_nothing = type(None)
 
 
-def test_delayed_command_order():
+def test_delayed_command_order() -> None:
     """
     delayed commands should be sorted by delay time
     """
@@ -21,14 +21,14 @@ def test_delayed_command_order():
     assert [c.delay.seconds for c in cmds] == sorted(delays)
 
 
-def test_periodic_command_delay():
+def test_periodic_command_delay() -> None:
     "A PeriodicCommand must have a positive, non-zero delay."
     with pytest.raises(ValueError) as exc_info:
         schedule.PeriodicCommand.after(0, None)
     assert str(exc_info.value) == test_periodic_command_delay.__doc__
 
 
-def test_periodic_command_fixed_delay():
+def test_periodic_command_fixed_delay() -> None:
     """
     Test that we can construct a periodic command with a fixed initial
     delay.
@@ -41,14 +41,14 @@ def test_periodic_command_fixed_delay():
 
 
 class TestCommands:
-    def test_delayed_command_from_timestamp(self):
+    def test_delayed_command_from_timestamp(self) -> None:
         """
         Ensure a delayed command can be constructed from a timestamp.
         """
         t = time.time()
         schedule.DelayedCommand.at_time(t, do_nothing)
 
-    def test_command_at_noon(self):
+    def test_command_at_noon(self) -> None:
         """
         Create a periodic command that's run at noon every day.
         """
@@ -63,7 +63,7 @@ class TestCommands:
 
     @pytest.mark.parametrize("hour", range(10, 14))
     @pytest.mark.parametrize("tz_offset", (14, -14))
-    def test_command_at_noon_distant_local(self, hour, tz_offset):
+    def test_command_at_noon_distant_local(self, hour: int, tz_offset: int) -> None:
         """
         Run test_command_at_noon, but with the local timezone
         more than 12 hours away from UTC.
@@ -73,19 +73,19 @@ class TestCommands:
 
 
 class TestTimezones:
-    def test_alternate_timezone_west(self):
+    def test_alternate_timezone_west(self) -> None:
         target_tz = zoneinfo.ZoneInfo('US/Pacific')
         target = schedule.now().astimezone(target_tz)
         cmd = schedule.DelayedCommand.at_time(target, target=None)
         assert cmd.due()
 
-    def test_alternate_timezone_east(self):
+    def test_alternate_timezone_east(self) -> None:
         target_tz = zoneinfo.ZoneInfo('Europe/Amsterdam')
         target = schedule.now().astimezone(target_tz)
         cmd = schedule.DelayedCommand.at_time(target, target=None)
         assert cmd.due()
 
-    def test_daylight_savings(self):
+    def test_daylight_savings(self) -> None:
         """
         A command at 9am should always be 9am regardless of
         a DST boundary.
@@ -98,7 +98,7 @@ class TestTimezones:
             )
             assert not cmd.due()
 
-        def naive(dt):
+        def naive(dt: datetime.datetime) -> datetime.datetime:
             return dt.replace(tzinfo=None)
 
         assert naive(cmd) == datetime.datetime(2018, 3, 10, 9, 0, 0)
@@ -121,7 +121,7 @@ class TestTimezones:
 
 
 class TestScheduler:
-    def test_invoke_scheduler(self):
+    def test_invoke_scheduler(self) -> None:
         sched = schedule.InvokeScheduler()
         target = mock.MagicMock()
         cmd = schedule.DelayedCommand.after(0, target)
@@ -130,7 +130,7 @@ class TestScheduler:
         target.assert_called_once()
         assert not sched.queue
 
-    def test_callback_scheduler(self):
+    def test_callback_scheduler(self) -> None:
         callback = mock.MagicMock()
         sched = schedule.CallbackScheduler(callback)
         target = mock.MagicMock()
@@ -139,7 +139,7 @@ class TestScheduler:
         sched.run_pending()
         callback.assert_called_once_with(target)
 
-    def test_periodic_command(self):
+    def test_periodic_command(self) -> None:
         sched = schedule.InvokeScheduler()
         target = mock.MagicMock()
 
