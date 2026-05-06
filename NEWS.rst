@@ -1,3 +1,13 @@
+v5.9.0
+======
+
+Features
+--------
+
+- Schedule.PeriodicCommand objects now retain custom attributes across 'next' instances. (#40)
+- DelayedCommand now renders the target and execution time in __str__.
+
+
 v5.8.1
 ======
 
