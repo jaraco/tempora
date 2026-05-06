@@ -7,7 +7,7 @@ import functools
 import numbers
 import time
 from types import TracebackType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import jaraco.functools
 
@@ -94,15 +94,17 @@ class IntervalGovernor:
     30.0
     """
 
-    def __init__(self, min_interval) -> None:
+    def __init__(self, min_interval: datetime.timedelta | numbers.Number) -> None:
         if isinstance(min_interval, numbers.Number):
             min_interval = datetime.timedelta(seconds=min_interval)  # type: ignore[arg-type] # python/mypy#3186#issuecomment-1571512649
         self.min_interval = min_interval
-        self.last_call = None
+        self.last_call: Stopwatch | None = None
 
-    def decorate(self, func):
+    def decorate(
+        self, func: collections.abc.Callable[..., Any]
+    ) -> collections.abc.Callable[..., Any]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             allow = not self.last_call or self.last_call.split() > self.min_interval
             if allow:
                 self.last_call = Stopwatch()
@@ -125,12 +127,14 @@ class Timer(Stopwatch):
     True
     """
 
-    def __init__(self, target=float('Inf')) -> None:
+    def __init__(
+        self, target: float | datetime.timedelta | None = float('Inf')
+    ) -> None:
         self.target = self._accept(target)
         super().__init__()
 
     @staticmethod
-    def _accept(target: float) -> float:
+    def _accept(target: float | datetime.timedelta | None) -> float:
         """
         Accept None or ∞ or datetime or numeric for target
 
@@ -152,7 +156,7 @@ class Timer(Stopwatch):
         return self.split().total_seconds() > self.target
 
 
-class BackoffDelay(collections.abc.Iterator):
+class BackoffDelay(collections.abc.Iterator[int | float]):
     """
     Exponential backoff delay.
 
@@ -232,7 +236,7 @@ class BackoffDelay(collections.abc.Iterator):
     True
     """
 
-    factor = 1
+    factor: float = 1
     "Multiplier applied to delay"
 
     jitter: collections.abc.Callable[[], float]
@@ -242,7 +246,7 @@ class BackoffDelay(collections.abc.Iterator):
     def __init__(
         self,
         delay: float = 0,
-        factor=1,
+        factor: float = 1,
         limit: collections.abc.Callable[[float], float] | float = float('inf'),
         jitter: collections.abc.Callable[[], float] | float = 0,
     ) -> None:
@@ -284,6 +288,6 @@ class BackoffDelay(collections.abc.Iterator):
     def bump(self) -> None:
         self.delay = self.limit(self.delay * self.factor + self.jitter())
 
-    def reset(self):
-        saved = self._saved___init__
-        self.__init__(*saved.args, **saved.kwargs)
+    def reset(self) -> None:
+        saved = self._saved___init__  # type: ignore[attr-defined]
+        self.__init__(*saved.args, **saved.kwargs)  # type: ignore[misc]
