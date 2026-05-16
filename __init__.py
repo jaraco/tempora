@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+__requires__ = [
+    'pytest-freezer; extra=="test"',
+    'backports.zoneinfo; python_version < "3.9" and extra == "test"',
+    'tzdata; platform_system == "Windows" and extra == "test"',
+    'types-python-dateutil; extra=="test"',
+]
+
 import contextlib
 import datetime
 import functools

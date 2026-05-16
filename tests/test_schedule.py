@@ -6,7 +6,6 @@ from unittest import mock
 
 import freezegun
 import pytest
-
 from tempora import schedule
 
 do_nothing = type(None)

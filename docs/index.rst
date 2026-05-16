@@ -5,12 +5,6 @@ Welcome to |project| documentation!
    :home:
    :pypi:
 
-.. toctree::
-   :maxdepth: 1
-
-   history
-
-
 .. tidelift-referral-banner::
 
 .. automodule:: tempora

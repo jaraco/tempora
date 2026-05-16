@@ -1,3 +1,0 @@
-[tool.towncrier]
-title_format = "{version}"
-directory = "newsfragments"  # jaraco/skeleton#184

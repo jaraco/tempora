@@ -6,7 +6,6 @@ from collections.abc import Generator
 from unittest import mock
 
 import pytest
-
 from tempora import timing
 
 
