@@ -294,8 +294,7 @@ def _(period: str) -> numbers.Number:
         name = 'seconds_per_' + period.lower()
         return cast(numbers.Number, globals()[name])
     except KeyError:
-        msg = "period not in (second, minute, hour, day, month, year)"
-        raise ValueError(msg)
+        raise ValueError("period not in (second, minute, hour, day, month, year)")
 
 
 @get_period_seconds.register
