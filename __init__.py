@@ -267,6 +267,7 @@ def gregorian_date(year: int, julian_day: int) -> datetime.date:
     return result
 
 
+@functools.singledispatch
 def get_period_seconds(
     period: str | numbers.Number | datetime.timedelta,
 ) -> numbers.Number:
@@ -284,20 +285,27 @@ def get_period_seconds(
     ...
     ValueError: period not in (second, minute, hour, day, month, year)
     """
-    if isinstance(period, str):
-        try:
-            name = 'seconds_per_' + period.lower()
-            result = cast(numbers.Number, globals()[name])
-        except KeyError:
-            msg = "period not in (second, minute, hour, day, month, year)"
-            raise ValueError(msg)
-    elif isinstance(period, numbers.Number):
-        result = period
-    elif isinstance(period, datetime.timedelta):
-        result = period.days * get_period_seconds('day') + period.seconds  # type: ignore[operator, assignment]
-    else:
-        raise TypeError('period must be a string or integer')
-    return result
+    raise TypeError('period must be a string or integer')
+
+
+@get_period_seconds.register
+def _(period: str) -> numbers.Number:
+    try:
+        name = 'seconds_per_' + period.lower()
+        return cast(numbers.Number, globals()[name])
+    except KeyError:
+        msg = "period not in (second, minute, hour, day, month, year)"
+        raise ValueError(msg)
+
+
+@get_period_seconds.register
+def _(period: numbers.Number) -> numbers.Number:
+    return period
+
+
+@get_period_seconds.register
+def _(period: datetime.timedelta) -> numbers.Number:
+    return period.days * get_period_seconds('day') + period.seconds  # type: ignore[operator]
 
 
 def get_date_format_string(period: str | numbers.Number | datetime.timedelta) -> str:
