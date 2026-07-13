@@ -9,8 +9,8 @@ __requires__ = [
     'types-python-dateutil; extra=="test"',
 ]
 
-import contextlib
 import datetime
+import decimal
 import functools
 import numbers
 import re
@@ -465,13 +465,18 @@ def parse_timedelta(str: str) -> datetime.timedelta:
     ...
     ValueError: Cannot specify units with composite delta
 
-    Nanoseconds get rounded to the nearest microsecond:
+    Because a timedelta only has microsecond resolution, nanoseconds
+    (and other sub-microsecond values) get rounded to the nearest
+    microsecond. Use :func:`parse_nanoseconds` to retain that precision.
 
     >>> parse_timedelta('600 ns')
     datetime.timedelta(microseconds=1)
 
     >>> parse_timedelta('.002 µs, 499 ns')
     datetime.timedelta(microseconds=1)
+
+    >>> parse_timedelta('1.6 µs')
+    datetime.timedelta(microseconds=2)
 
     Expect ValueError for other invalid inputs.
 
@@ -481,6 +486,38 @@ def parse_timedelta(str: str) -> datetime.timedelta:
     ValueError: Invalid unit feets
     """
     return _parse_timedelta_nanos(str).resolve()
+
+
+def parse_nanoseconds(str: str) -> decimal.Decimal:
+    """
+    Parse a string representing a span of time, returning the total
+    number of nanoseconds as a :class:`decimal.Decimal`.
+
+    Unlike :func:`parse_timedelta`, which is limited to the microsecond
+    resolution of :class:`datetime.timedelta`, this retains
+    sub-microsecond precision.
+
+    >>> parse_nanoseconds('600 ns')
+    Decimal('600.0')
+
+    >>> parse_nanoseconds('34.2 nsec')
+    Decimal('34.2')
+
+    >>> parse_nanoseconds('1.6 µs')
+    Decimal('1600.0')
+
+    >>> parse_nanoseconds('.002 µs, 499 ns')
+    Decimal('501.000')
+
+    >>> parse_nanoseconds('1 ms')
+    Decimal('1000000.0')
+
+    Coarser units are supported too.
+
+    >>> parse_nanoseconds('1 day')
+    Decimal('86400000000000')
+    """
+    return _parse_timedelta_nanos(str).total_nanoseconds
 
 
 def _parse_timedelta_nanos(str: str) -> _Saved_NS:
@@ -569,18 +606,23 @@ def _parse_timedelta_part(match: re.Match[str]) -> _Saved_NS:
 
 class _Saved_NS:
     """
-    Bundle a timedelta with nanoseconds.
+    Bundle a timedelta with a sub-microsecond nanoseconds remainder.
+
+    ``td`` carries whole-microsecond resolution and ``nanoseconds`` the
+    exact sub-microsecond remainder, so that ``total_nanoseconds``
+    reconstructs the full precision of the parsed value.
 
     >>> _Saved_NS.derive('microseconds', .001)
-    _Saved_NS(td=datetime.timedelta(0), nanoseconds=1)
+    _Saved_NS(td=datetime.timedelta(0), nanoseconds=Decimal('1.000'))
     """
 
     td = datetime.timedelta()
-    nanoseconds = 0
+    nanoseconds: decimal.Decimal = decimal.Decimal(0)
     multiplier = dict(
         seconds=1000000000,
         milliseconds=1000000,
         microseconds=1000,
+        nanoseconds=1,
     )
 
     def __init__(self, **kwargs: Any) -> None:
@@ -588,31 +630,42 @@ class _Saved_NS:
 
     @classmethod
     def derive(cls, unit: str, value: float) -> _Saved_NS:
-        if unit == 'nanoseconds':
-            return _Saved_NS(nanoseconds=value)
-
         try:
-            raw_td = datetime.timedelta(**{unit: value})
-        except TypeError:
-            raise ValueError(f"Invalid unit {unit}")
-        res = _Saved_NS(td=raw_td)
-        with contextlib.suppress(KeyError):
-            res.nanoseconds = int(value * cls.multiplier[unit]) % 1000
-        return res
+            factor = cls.multiplier[unit]
+        except KeyError:
+            try:
+                return _Saved_NS(td=datetime.timedelta(**{unit: value}))
+            except TypeError:
+                raise ValueError(f"Invalid unit {unit}")
+        # Track the value exactly in nanoseconds, then split into a
+        # whole-microsecond timedelta and the sub-microsecond remainder.
+        total_ns = decimal.Decimal(str(value)) * factor
+        whole_us, rem_ns = divmod(total_ns, 1000)
+        return _Saved_NS(
+            td=datetime.timedelta(microseconds=int(whole_us)), nanoseconds=rem_ns
+        )
 
     def __add__(self, other: _Saved_NS) -> _Saved_NS:
         return _Saved_NS(
             td=self.td + other.td, nanoseconds=self.nanoseconds + other.nanoseconds
         )
 
+    @property
+    def total_nanoseconds(self) -> decimal.Decimal:
+        """
+        The full parsed value expressed in nanoseconds, retaining
+        sub-microsecond resolution.
+        """
+        whole_us = self.td // datetime.timedelta(microseconds=1)
+        return whole_us * 1000 + self.nanoseconds
+
     def resolve(self) -> datetime.timedelta:
         """
-        Resolve any nanoseconds into the microseconds field,
-        discarding any nanosecond resolution (but honoring partial
-        microseconds).
+        Resolve to a timedelta, rounding to the nearest microsecond
+        (discarding any nanosecond resolution).
         """
-        addl_micros = round(self.nanoseconds / 1000)
-        return self.td + datetime.timedelta(microseconds=addl_micros)
+        micros = round(self.total_nanoseconds / 1000)
+        return datetime.timedelta(microseconds=micros)
 
     def __repr__(self) -> str:
         return f'_Saved_NS(td={self.td!r}, nanoseconds={self.nanoseconds!r})'
