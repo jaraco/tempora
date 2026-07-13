@@ -46,7 +46,7 @@ seconds_per_month = seconds_per_year / 12
 hours_per_month = hours_per_day * days_per_year / 12
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _needs_year_help() -> bool:
     """
     Some versions of Python render %Y with only three characters :(
@@ -143,9 +143,9 @@ def strftime(fmt: str, t: AnyDatetime | tuple[int, ...] | time.struct_time) -> s
     """
     t = infer_datetime(t)
     subs = (
-        ('%s', '%03d' % (t.microsecond // 1000)),
-        ('%µ', '%03d' % (t.microsecond % 1000)),
-    ) + (('%Y', '%04d' % t.year),) * _needs_year_help()
+        ('%s', f'{t.microsecond // 1000:03d}'),
+        ('%µ', f'{t.microsecond % 1000:03d}'),
+    ) + (('%Y', f'{t.year:04d}'),) * _needs_year_help()
 
     def doSub(s: str, sub: tuple[str, str]) -> str:
         return s.replace(*sub)
