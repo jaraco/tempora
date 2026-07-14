@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import dateutil.parser
 import dateutil.tz
+from jaraco.collections import RangeMap
 
 if TYPE_CHECKING:
     from typing import TypeAlias
@@ -518,6 +519,167 @@ def parse_nanoseconds(str: str) -> decimal.Decimal:
     Decimal('86400000000000')
     """
     return _parse_timedelta_nanos(str).total_nanoseconds
+
+
+@functools.total_ordering
+class Duration:
+    """
+    A span of time with nanosecond resolution.
+
+    Where :class:`datetime.timedelta` bottoms out at microsecond
+    resolution, a Duration retains sub-microsecond precision, making it
+    suitable for expressing and comparing very short intervals such as
+    the output of :mod:`timeit`.
+
+    Construct from a number of nanoseconds or from keyword units:
+
+    >>> Duration(34.2)
+    Duration(Decimal('34.2'))
+    >>> Duration(microseconds=1.6)
+    Duration(Decimal('1600.0'))
+    >>> Duration(seconds=1, nanoseconds=5)
+    Duration(Decimal('1000000005'))
+
+    Or parse a textual duration (see :func:`parse_nanoseconds`):
+
+    >>> Duration.parse('34.2 nsec')
+    Duration(Decimal('34.2'))
+
+    Rendered with the most natural unit:
+
+    >>> print(Duration.parse('34.2 nsec'))
+    34.2 nsec
+    >>> print(Duration(microseconds=1.6))
+    1.6 µsec
+    >>> print(Duration(milliseconds=12.3))
+    12.3 msec
+    >>> print(Duration(seconds=2))
+    2 sec
+    >>> print(Duration(0))
+    0 nsec
+
+    Durations add and subtract to yield Durations, and divide by one
+    another to yield a dimensionless ratio:
+
+    >>> Duration.parse('38.1 nsec') - Duration.parse('34.2 nsec')
+    Duration(Decimal('3.9'))
+    >>> Duration.parse('38.1 nsec') / Duration.parse('34.2 nsec')
+    Decimal('1.11...')
+
+    Multiply or divide by a scalar to scale:
+
+    >>> print(Duration(microseconds=1) / 4)
+    250 nsec
+    >>> print(Duration(nanoseconds=250) * 4)
+    1 µsec
+
+    They compare and sort by magnitude, and are falsey when zero:
+
+    >>> Duration(5) < Duration(microseconds=1)
+    True
+    >>> bool(Duration(0))
+    False
+
+    Interoperate with :class:`datetime.timedelta` (rounding to its
+    microsecond resolution):
+
+    >>> Duration.from_timedelta(datetime.timedelta(seconds=1))
+    Duration(Decimal('1000000000'))
+    >>> Duration(microseconds=1.6).timedelta()
+    datetime.timedelta(microseconds=2)
+    """
+
+    _ns_per = dict(
+        nanoseconds=1,
+        microseconds=10**3,
+        milliseconds=10**6,
+        seconds=10**9,
+    )
+
+    _scale = RangeMap.left({
+        decimal.Decimal(0): (decimal.Decimal(1), 'nsec'),
+        decimal.Decimal(10**3): (decimal.Decimal(10**3), 'µsec'),
+        decimal.Decimal(10**6): (decimal.Decimal(10**6), 'msec'),
+        decimal.Decimal(10**9): (decimal.Decimal(10**9), 'sec'),
+    })
+
+    def __init__(self, nanoseconds: float | decimal.Decimal = 0, **units: float):
+        total = decimal.Decimal(str(nanoseconds))
+        for unit, value in units.items():
+            try:
+                factor = self._ns_per[unit]
+            except KeyError:
+                raise ValueError(f"Invalid unit {unit!r}")
+            total += decimal.Decimal(str(value)) * factor
+        self.nanoseconds = total
+
+    @classmethod
+    def parse(cls, spec: str) -> Duration:
+        return cls(parse_nanoseconds(spec))
+
+    @classmethod
+    def from_timedelta(cls, delta: datetime.timedelta) -> Duration:
+        return cls(microseconds=delta // datetime.timedelta(microseconds=1))
+
+    def timedelta(self) -> datetime.timedelta:
+        micros = round(self.nanoseconds / self._ns_per['microseconds'])
+        return datetime.timedelta(microseconds=micros)
+
+    def total_seconds(self) -> decimal.Decimal:
+        return self.nanoseconds / self._ns_per['seconds']
+
+    def __str__(self) -> str:
+        factor, unit = self._scale[abs(self.nanoseconds)]
+        return f'{float(self.nanoseconds / factor):.3g} {unit}'
+
+    def __repr__(self) -> str:
+        return f'{type(self).__name__}({self.nanoseconds!r})'
+
+    def __add__(self, other: Duration) -> Duration:
+        if not isinstance(other, Duration):
+            return NotImplemented
+        return Duration(self.nanoseconds + other.nanoseconds)
+
+    def __sub__(self, other: Duration) -> Duration:
+        if not isinstance(other, Duration):
+            return NotImplemented
+        return Duration(self.nanoseconds - other.nanoseconds)
+
+    def __mul__(self, other: float) -> Duration:
+        if not isinstance(other, numbers.Real):
+            return NotImplemented
+        return Duration(self.nanoseconds * decimal.Decimal(str(other)))
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, other: Duration | float) -> Duration | decimal.Decimal:
+        if isinstance(other, Duration):
+            return self.nanoseconds / other.nanoseconds
+        if isinstance(other, numbers.Real):
+            return Duration(self.nanoseconds / decimal.Decimal(str(other)))
+        return NotImplemented
+
+    def __neg__(self) -> Duration:
+        return Duration(-self.nanoseconds)
+
+    def __abs__(self) -> Duration:
+        return Duration(abs(self.nanoseconds))
+
+    def __bool__(self) -> bool:
+        return bool(self.nanoseconds)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Duration):
+            return NotImplemented
+        return self.nanoseconds == other.nanoseconds
+
+    def __lt__(self, other: Duration) -> bool:
+        if not isinstance(other, Duration):
+            return NotImplemented
+        return self.nanoseconds < other.nanoseconds
+
+    def __hash__(self) -> int:
+        return hash(self.nanoseconds)
 
 
 def _parse_timedelta_nanos(str: str) -> _Saved_NS:
