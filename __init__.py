@@ -451,6 +451,15 @@ def parse_timedelta(str: str) -> datetime.timedelta:
     >>> parse_timedelta('1 us')
     datetime.timedelta(microseconds=1)
 
+    Plural forms of the abbreviations are also accepted:
+
+    >>> parse_timedelta('2 hrs')
+    datetime.timedelta(seconds=7200)
+    >>> parse_timedelta('5 mins')
+    datetime.timedelta(seconds=300)
+    >>> parse_timedelta('3 secs')
+    datetime.timedelta(seconds=3)
+
     And supports the common colon-separated duration:
 
     >>> parse_timedelta('14:00:35.362')
@@ -737,7 +746,12 @@ def _resolve_unit(raw_match: str | None) -> str:
     if raw_match is None:
         return 'second'
     text = raw_match.lower()
-    return _unit_lookup.get(text, text)
+    if text in _unit_lookup:
+        return _unit_lookup[text]
+    # Accept plural forms of the abbreviations (hrs, mins, secs, wks, ...).
+    if text.endswith('s') and text[:-1] in _unit_lookup:
+        return _unit_lookup[text[:-1]]
+    return text
 
 
 def _parse_timedelta_composite(raw_value: str, unit: str) -> _Saved_NS:
