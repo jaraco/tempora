@@ -10,6 +10,7 @@ __requires__ = [
 ]
 
 import datetime
+import operator
 import decimal
 import functools
 import numbers
@@ -855,12 +856,35 @@ def date_range(
     >>> from_now = date_range(stop=datetime.datetime(2099, 12, 31))
     >>> next(from_now)
     datetime.datetime(...)
+
+    Like ``range``, a zero step is rejected, and a step that moves away
+    from ``stop`` yields an empty sequence instead of looping forever.
+
+    >>> list(date_range(
+    ...     datetime.datetime(2005, 12, 21),
+    ...     datetime.datetime(2005, 12, 25),
+    ...     datetime.timedelta(0),
+    ... ))
+    Traceback (most recent call last):
+    ...
+    ValueError: date_range() step argument must not be zero
+
+    >>> list(date_range(
+    ...     datetime.datetime(2005, 12, 25),
+    ...     datetime.datetime(2005, 12, 21),
+    ...     datetime.timedelta(days=-1),
+    ... ))
+    [datetime.datetime(2005, 12, 25, 0, 0), datetime.datetime(2005, 12, 24, 0, 0), datetime.datetime(2005, 12, 23, 0, 0), datetime.datetime(2005, 12, 22, 0, 0)]
     """
     if step is None:
         step = datetime.timedelta(days=1)
+    if not step:
+        raise ValueError("date_range() step argument must not be zero")
     if start is None:
         start = datetime.datetime.now()
-    while start < stop:  # type: ignore[operator]  # stop may be None if not provided
+    # Mirror builtins.range: empty when step moves away from stop.
+    compare = operator.lt if step > datetime.timedelta(0) else operator.gt
+    while compare(start, stop):  # type: ignore[operator]  # stop may be None if not provided
         yield start
         start += step
 
