@@ -185,7 +185,17 @@ def datetime_mod(
     ...     datetime.timedelta(days = 7),
     ...     start = datetime.datetime(2004, 1, 1))
     datetime.datetime(2004, 1, 8, 0, 0)
+
+    A zero period is undefined for modulo truncation:
+
+    >>> datetime_mod(datetime.datetime(2004, 1, 2, 3),
+    ...     datetime.timedelta(0))
+    Traceback (most recent call last):
+    ...
+    ValueError: datetime_mod() period argument must not be zero
     """
+    if not period:
+        raise ValueError("datetime_mod() period argument must not be zero")
     if start is None:
         # use midnight of the same day
         start = datetime.datetime.combine(dt.date(), datetime.time())
@@ -330,6 +340,14 @@ def get_date_format_string(period: str | numbers.Number | datetime.timedelta) ->
     Traceback (most recent call last):
         ...
     ValueError: period not in (second, minute, hour, day, month, year)
+
+    Sub-second periods do not divide any integer interval evenly; use
+    the finest available format rather than failing:
+
+    >>> get_date_format_string(0.5)
+    '%Y-%m-%d %H-%M-%S'
+    >>> get_date_format_string(90.5)
+    '%Y-%m-%d %H-%M-%S'
     """
     # handle the special case of 'month' which doesn't have
     #  a static interval in seconds
@@ -346,8 +364,9 @@ def get_date_format_string(period: str | numbers.Number | datetime.timedelta) ->
         seconds_per_second,
     )
     mods = list(map(lambda interval: file_period_secs % interval, intervals))  # type: ignore[operator]
-    format_pieces = format_pieces[: mods.index(0) + 1]
-    return ''.join(format_pieces)
+    # Non-integral periods never hit mods==0; keep full second precision.
+    precision = mods.index(0) + 1 if 0 in mods else len(format_pieces)
+    return ''.join(format_pieces[:precision])
 
 
 def calculate_prorated_values() -> None:
