@@ -209,8 +209,17 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         >>> cmd = PeriodicCommandFixedDelay.daily_at(noon, None)
         >>> cmd.delay.total_seconds()
         86400.0
+
+        Naive times are treated as UTC, matching the scheduler default:
+
+        >>> cmd = PeriodicCommandFixedDelay.daily_at(datetime.time(12, 0), None)
+        >>> cmd.delay.total_seconds()
+        86400.0
         """
         daily = datetime.timedelta(days=1)
+        if at.tzinfo is None:
+            # Scheduler now() is UTC-aware; assume UTC for naive wall times.
+            at = at.replace(tzinfo=datetime.timezone.utc)
         # convert when to the next datetime matching this time
         when = datetime.datetime.combine(datetime.date.today(), at)
         when -= daily
