@@ -436,6 +436,25 @@ def parse_timedelta(str: str) -> datetime.timedelta:
     >>> parse_timedelta('1s')
     datetime.timedelta(seconds=1)
 
+    >>> parse_timedelta('-1s').total_seconds()
+    -1.0
+
+    >>> parse_timedelta('1s -2s').total_seconds()
+    -1.0
+
+    >>> parse_timedelta('-1:30:00').total_seconds()
+    -5400.0
+
+    >>> parse_timedelta('- 1s')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unexpected '-'
+
+    >>> parse_timedelta('-+1s')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unexpected '-'
+
     >>> parse_timedelta('1sec')
     datetime.timedelta(seconds=1)
 
@@ -683,7 +702,7 @@ class Duration:
 
 
 def _parse_timedelta_nanos(str: str) -> _Saved_NS:
-    parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>[^\W\d_]+)?', str)
+    parts = re.finditer(r'(?P<value>[+-]?[\d.:]+)\s?(?P<unit>[^\W\d_]+)?', str)
     chk_parts = _check_unmatched(parts, str)
     deltas = map(_parse_timedelta_part, chk_parts)
     return sum(deltas, _Saved_NS())
@@ -697,7 +716,7 @@ def _check_unmatched(
     """
 
     def check_unmatched(unmatched: str) -> None:
-        found = re.search(r'\w+', unmatched)
+        found = re.search(r'\w+|[+-]', unmatched)
         if found:
             raise ValueError(f"Unexpected {found.group(0)!r}")
 
@@ -743,10 +762,16 @@ def _resolve_unit(raw_match: str | None) -> str:
 def _parse_timedelta_composite(raw_value: str, unit: str) -> _Saved_NS:
     if unit != 'seconds':
         raise ValueError("Cannot specify units with composite delta")
+    negative = raw_value.startswith('-')
+    if raw_value[:1] in '+-':
+        raw_value = raw_value[1:]
     values = raw_value.split(':')
     units = 'hours', 'minutes', 'seconds'
-    composed = ' '.join(f'{value} {unit}' for value, unit in zip(values, units))
-    return _parse_timedelta_nanos(composed)
+    composed = ' '.join(f'{value} {u}' for value, u in zip(values, units))
+    result = _parse_timedelta_nanos(composed)
+    if negative:
+        return _Saved_NS(td=-result.td, nanoseconds=-result.nanoseconds)
+    return result
 
 
 def _parse_timedelta_part(match: re.Match[str]) -> _Saved_NS:
