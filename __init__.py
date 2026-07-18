@@ -281,6 +281,10 @@ def get_period_seconds(
     86400
     >>> get_period_seconds(datetime.timedelta(hours=24))
     86400
+    >>> get_period_seconds(datetime.timedelta(milliseconds=500))
+    0.5
+    >>> get_period_seconds(datetime.timedelta(microseconds=1))
+    1e-06
     >>> get_period_seconds('day + os.system("rm -Rf *")')
     Traceback (most recent call last):
     ...
@@ -305,7 +309,11 @@ def _(period: numbers.Number) -> numbers.Number:
 
 @get_period_seconds.register
 def _(period: datetime.timedelta) -> numbers.Number:
-    return period.days * get_period_seconds('day') + period.seconds  # type: ignore[operator]
+    seconds = period.days * get_period_seconds('day') + period.seconds  # type: ignore[operator]
+    if period.microseconds:
+        # timedelta seconds omit sub-second; include microseconds.
+        seconds += period.microseconds / 1_000_000
+    return seconds
 
 
 def get_date_format_string(period: str | numbers.Number | datetime.timedelta) -> str:
@@ -330,6 +338,8 @@ def get_date_format_string(period: str | numbers.Number | datetime.timedelta) ->
     Traceback (most recent call last):
         ...
     ValueError: period not in (second, minute, hour, day, month, year)
+    >>> get_date_format_string(datetime.timedelta(milliseconds=500))
+    '%Y-%m-%d %H-%M-%S'
     """
     # handle the special case of 'month' which doesn't have
     #  a static interval in seconds
@@ -346,8 +356,9 @@ def get_date_format_string(period: str | numbers.Number | datetime.timedelta) ->
         seconds_per_second,
     )
     mods = list(map(lambda interval: file_period_secs % interval, intervals))  # type: ignore[operator]
-    format_pieces = format_pieces[: mods.index(0) + 1]
-    return ''.join(format_pieces)
+    # Sub-second periods never hit mods==0; keep full second precision.
+    precision = mods.index(0) + 1 if 0 in mods else len(format_pieces)
+    return ''.join(format_pieces[:precision])
 
 
 def calculate_prorated_values() -> None:
