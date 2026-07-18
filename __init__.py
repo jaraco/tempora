@@ -875,6 +875,19 @@ def date_range(
     ...     datetime.timedelta(days=-1),
     ... ))
     [datetime.datetime(2005, 12, 25, 0, 0), datetime.datetime(2005, 12, 24, 0, 0), datetime.datetime(2005, 12, 23, 0, 0), datetime.datetime(2005, 12, 22, 0, 0)]
+
+    >>> list(date_range(
+    ...     datetime.datetime(2005, 12, 25),
+    ...     datetime.datetime(2005, 12, 21),
+    ... ))
+    []
+
+    >>> list(date_range(
+    ...     datetime.datetime(2005, 12, 21),
+    ...     datetime.datetime(2005, 12, 25),
+    ...     datetime.timedelta(days=-1),
+    ... ))
+    []
     """
     if step is None:
         step = datetime.timedelta(days=1)
