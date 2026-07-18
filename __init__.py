@@ -479,6 +479,14 @@ def parse_timedelta(str: str) -> datetime.timedelta:
     >>> parse_timedelta('1.6 µs')
     datetime.timedelta(microseconds=2)
 
+    Scientific notation is accepted for the numeric value:
+
+    >>> parse_timedelta('1e3 nsec')
+    datetime.timedelta(microseconds=1)
+
+    >>> parse_timedelta('1.5e2 ms')
+    datetime.timedelta(microseconds=150000)
+
     Expect ValueError for other invalid inputs.
 
     >>> parse_timedelta('13 feet')
@@ -683,7 +691,10 @@ class Duration:
 
 
 def _parse_timedelta_nanos(str: str) -> _Saved_NS:
-    parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>[^\W\d_]+)?', str)
+    # Optional [eE][+-]?digits so float-style scientific values are one token.
+    parts = re.finditer(
+        r'(?P<value>[\d.:]+(?:[eE][+-]?\d+)?)\s?(?P<unit>[^\W\d_]+)?', str
+    )
     chk_parts = _check_unmatched(parts, str)
     deltas = map(_parse_timedelta_part, chk_parts)
     return sum(deltas, _Saved_NS())
