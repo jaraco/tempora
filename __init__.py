@@ -185,7 +185,17 @@ def datetime_mod(
     ...     datetime.timedelta(days = 7),
     ...     start = datetime.datetime(2004, 1, 1))
     datetime.datetime(2004, 1, 8, 0, 0)
+
+    A zero period is undefined for modulo truncation:
+
+    >>> datetime_mod(datetime.datetime(2004, 1, 2, 3),
+    ...     datetime.timedelta(0))
+    Traceback (most recent call last):
+    ...
+    ValueError: datetime_mod() period argument must not be zero
     """
+    if not period:
+        raise ValueError("datetime_mod() period argument must not be zero")
     if start is None:
         # use midnight of the same day
         start = datetime.datetime.combine(dt.date(), datetime.time())
