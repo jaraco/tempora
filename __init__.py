@@ -436,14 +436,24 @@ def parse_timedelta(str: str) -> datetime.timedelta:
     >>> parse_timedelta('1s')
     datetime.timedelta(seconds=1)
 
-    >>> parse_timedelta('-1s')
-    datetime.timedelta(days=-1, seconds=86399)
+    >>> parse_timedelta('-1s').total_seconds()
+    -1.0
 
-    >>> parse_timedelta('1s -2s')
-    datetime.timedelta(days=-1, seconds=86399)
+    >>> parse_timedelta('1s -2s').total_seconds()
+    -1.0
 
-    >>> parse_timedelta('-1:30:00')
-    datetime.timedelta(days=-1, seconds=81000)
+    >>> parse_timedelta('-1:30:00').total_seconds()
+    -5400.0
+
+    >>> parse_timedelta('- 1s')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unexpected '-'
+
+    >>> parse_timedelta('-+1s')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unexpected '-'
 
     >>> parse_timedelta('1sec')
     datetime.timedelta(seconds=1)
@@ -706,7 +716,7 @@ def _check_unmatched(
     """
 
     def check_unmatched(unmatched: str) -> None:
-        found = re.search(r'\w+', unmatched)
+        found = re.search(r'\w+|[+-]', unmatched)
         if found:
             raise ValueError(f"Unexpected {found.group(0)!r}")
 
@@ -757,12 +767,11 @@ def _parse_timedelta_composite(raw_value: str, unit: str) -> _Saved_NS:
         raw_value = raw_value[1:]
     values = raw_value.split(':')
     units = 'hours', 'minutes', 'seconds'
-    # Apply the leading sign to every field so -1:30:00 is -1h-30m, not -1h+30m.
-    composed = ' '.join(
-        f'{"-" if negative else ""}{value} {unit}'
-        for value, unit in zip(values, units)
-    )
-    return _parse_timedelta_nanos(composed)
+    composed = ' '.join(f'{value} {u}' for value, u in zip(values, units))
+    result = _parse_timedelta_nanos(composed)
+    if negative:
+        return _Saved_NS(td=-result.td, nanoseconds=-result.nanoseconds)
+    return result
 
 
 def _parse_timedelta_part(match: re.Match[str]) -> _Saved_NS:
