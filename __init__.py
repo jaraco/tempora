@@ -746,12 +746,7 @@ def _resolve_unit(raw_match: str | None) -> str:
     if raw_match is None:
         return 'second'
     text = raw_match.lower()
-    if text in _unit_lookup:
-        return _unit_lookup[text]
-    # Accept plural forms of the abbreviations (hrs, mins, secs, wks, ...).
-    if text.endswith('s') and text[:-1] in _unit_lookup:
-        return _unit_lookup[text[:-1]]
-    return text
+    return _unit_lookup.get(text, text)
 
 
 def _parse_timedelta_composite(raw_value: str, unit: str) -> _Saved_NS:
