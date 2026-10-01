@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast
 import dateutil.parser
 import dateutil.tz
 from jaraco.collections import RangeMap
+from jaraco.functools import apply
 
 if TYPE_CHECKING:
     from typing import TypeAlias
@@ -451,6 +452,15 @@ def parse_timedelta(str: str) -> datetime.timedelta:
     >>> parse_timedelta('1 us')
     datetime.timedelta(microseconds=1)
 
+    Plural forms of the abbreviations are also accepted:
+
+    >>> parse_timedelta('2 hrs')
+    datetime.timedelta(seconds=7200)
+    >>> parse_timedelta('5 mins')
+    datetime.timedelta(seconds=300)
+    >>> parse_timedelta('3 secs')
+    datetime.timedelta(seconds=3)
+
     And supports the common colon-separated duration:
 
     >>> parse_timedelta('14:00:35.362')
@@ -733,10 +743,37 @@ _unit_lookup = {
 }
 
 
+def _make_singular(unit: str):
+    """
+    >>> _make_singular('hrs')
+    'hr'
+    >>> _make_singular('hours')
+    'hour'
+    >>> _make_singular('ms')
+    'ms'
+    >>> _make_singular('mss')
+    'mss'
+    >>> _make_singular('nanos')
+    'nanos'
+    """
+    singular = unit.rstrip('s')
+    was_plural = (
+        unit.endswith('s')
+        and singular in set(_unit_lookup.values()).union(_unit_lookup.keys())
+        and len(singular) > 1
+    )
+    return singular if was_plural else unit
+
+
+def _make_plural(unit: str):
+    return unit.rstrip('s') + 's'
+
+
+@apply(_make_plural)
 def _resolve_unit(raw_match: str | None) -> str:
     if raw_match is None:
         return 'second'
-    text = raw_match.lower()
+    text = _make_singular(raw_match.lower())
     return _unit_lookup.get(text, text)
 
 
@@ -751,8 +788,6 @@ def _parse_timedelta_composite(raw_value: str, unit: str) -> _Saved_NS:
 
 def _parse_timedelta_part(match: re.Match[str]) -> _Saved_NS:
     unit = _resolve_unit(match.group('unit'))
-    if not unit.endswith('s'):
-        unit += 's'
     raw_value = match.group('value')
     if ':' in raw_value:
         return _parse_timedelta_composite(raw_value, unit)
