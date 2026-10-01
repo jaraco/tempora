@@ -742,10 +742,32 @@ _unit_lookup = {
 }
 
 
+def _make_singular(unit: str):
+    """
+    >>> _make_singular('hrs')
+    'hr'
+    >>> _make_singular('hours')
+    'hour'
+    >>> _make_singular('ms')
+    'ms'
+    >>> _make_singular('mss')
+    'mss'
+    >>> _make_singular('nanos')
+    'nanos'
+    """
+    singular = unit.rstrip('s')
+    was_plural = (
+        unit.endswith('s')
+        and singular in set(_unit_lookup.values()).union(_unit_lookup.keys())
+        and len(singular) > 1
+    )
+    return singular if was_plural else unit
+
+
 def _resolve_unit(raw_match: str | None) -> str:
     if raw_match is None:
         return 'second'
-    text = raw_match.lower()
+    text = _make_singular(raw_match.lower())
     return _unit_lookup.get(text, text)
 
 
