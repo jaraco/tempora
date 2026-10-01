@@ -1,6 +1,7 @@
 import contextlib
 import datetime
 import os
+import sys
 import time
 from collections.abc import Generator
 from unittest import mock
@@ -27,16 +28,17 @@ def test_IntervalGovernor() -> None:
 
 @pytest.fixture
 def alt_tz(monkeypatch: pytest.MonkeyPatch) -> contextlib.AbstractContextManager[None]:
-    hasattr(time, 'tzset') or pytest.skip("tzset not available")
+    if sys.platform == 'win32':
+        pytest.skip("tzset not available")
 
     @contextlib.contextmanager
     def change() -> Generator[None, None, None]:
         val = 'AEST-10AEDT-11,M10.5.0,M3.5.0'
         with monkeypatch.context() as ctx:
             ctx.setitem(os.environ, 'TZ', val)
-            getattr(time, 'tzset')()
+            time.tzset()
             yield
-        getattr(time, 'tzset')()
+        time.tzset()
 
     return change()
 

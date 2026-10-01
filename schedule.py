@@ -212,7 +212,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         """
         daily = datetime.timedelta(days=1)
         # convert when to the next datetime matching this time
-        when = datetime.datetime.combine(datetime.date.today(), at)
+        when = datetime.datetime.combine(datetime.date.today(), at)  # noqa: DTZ011  # tz from `at`
         when -= daily
         while when < now():
             when += daily

@@ -16,7 +16,7 @@ import numbers
 import re
 import time
 from collections.abc import Iterable, Iterator, Sequence
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 import dateutil.parser
 import dateutil.tz
@@ -79,7 +79,7 @@ def ensure_datetime(ob: AnyDatetime) -> datetime.datetime:
 def infer_datetime(ob: AnyDatetime | StructDatetime) -> datetime.datetime:
     if isinstance(ob, (time.struct_time, tuple)):
         # '"int" is not assignable to "tzinfo"', but we don't pass that many parameters
-        ob = datetime.datetime(*ob[:6])  # type: ignore[arg-type]
+        ob = datetime.datetime(*ob[:6])  # type: ignore[arg-type]  # noqa: DTZ001  # struct_time is naive
     return ensure_datetime(ob)
 
 
@@ -345,7 +345,7 @@ def get_date_format_string(period: str | numbers.Number | datetime.timedelta) ->
         seconds_per_minute,
         seconds_per_second,
     )
-    mods = list(map(lambda interval: file_period_secs % interval, intervals))  # type: ignore[operator]
+    mods = [file_period_secs % interval for interval in intervals]  # type: ignore[operator]
     format_pieces = format_pieces[: mods.index(0) + 1]
     return ''.join(format_pieces)
 
@@ -598,7 +598,7 @@ class Duration:
     datetime.timedelta(microseconds=2)
     """
 
-    _ns_per = dict(
+    _ns_per: ClassVar[dict[str, int]] = dict(
         nanoseconds=1,
         microseconds=10**3,
         milliseconds=10**6,
@@ -811,7 +811,7 @@ class _Saved_NS:
 
     td = datetime.timedelta()
     nanoseconds: decimal.Decimal = decimal.Decimal(0)
-    multiplier = dict(
+    multiplier: ClassVar[dict[str, int]] = dict(
         seconds=1000000000,
         milliseconds=1000000,
         microseconds=1000,
@@ -890,7 +890,7 @@ def date_range(
     if step is None:
         step = datetime.timedelta(days=1)
     if start is None:
-        start = datetime.datetime.now()
+        start = datetime.datetime.now()  # noqa: DTZ005  # local time by design
     while start < stop:  # type: ignore[operator]  # stop may be None if not provided
         yield start
         start += step
