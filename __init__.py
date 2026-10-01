@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast
 import dateutil.parser
 import dateutil.tz
 from jaraco.collections import RangeMap
+from jaraco.functools import apply
 
 if TYPE_CHECKING:
     from typing import TypeAlias
@@ -764,6 +765,11 @@ def _make_singular(unit: str):
     return singular if was_plural else unit
 
 
+def _make_plural(unit: str):
+    return unit.rstrip('s') + 's'
+
+
+@apply(_make_plural)
 def _resolve_unit(raw_match: str | None) -> str:
     if raw_match is None:
         return 'second'
@@ -782,8 +788,6 @@ def _parse_timedelta_composite(raw_value: str, unit: str) -> _Saved_NS:
 
 def _parse_timedelta_part(match: re.Match[str]) -> _Saved_NS:
     unit = _resolve_unit(match.group('unit'))
-    if not unit.endswith('s'):
-        unit += 's'
     raw_value = match.group('value')
     if ':' in raw_value:
         return _parse_timedelta_composite(raw_value, unit)
