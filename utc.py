@@ -33,7 +33,7 @@ Now should be affected by freezegun.
 import datetime as std
 import functools
 
-__all__ = ['now', 'fromtimestamp', 'datetime', 'time']
+__all__ = ['datetime', 'fromtimestamp', 'now', 'time']
 
 
 def now() -> std.datetime:

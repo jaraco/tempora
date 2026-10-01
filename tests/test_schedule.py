@@ -100,7 +100,7 @@ class TestTimezones:
         def naive(dt: datetime.datetime) -> datetime.datetime:
             return dt.replace(tzinfo=None)
 
-        assert naive(cmd) == datetime.datetime(2018, 3, 10, 9, 0, 0)
+        assert naive(cmd) == datetime.datetime(2018, 3, 10, 9, 0, 0)  # noqa: DTZ001
 
         with freezegun.freeze_time('2018-03-10 8:59:59 -0500'):
             assert not cmd.due()
@@ -110,7 +110,7 @@ class TestTimezones:
 
         next_ = cmd.next()
 
-        assert naive(next_) == datetime.datetime(2018, 3, 11, 9, 0, 0)
+        assert naive(next_) == datetime.datetime(2018, 3, 11, 9, 0, 0)  # noqa: DTZ001
 
         with freezegun.freeze_time('2018-03-11 8:59:59 -0400'):
             assert not next_.due()
