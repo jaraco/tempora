@@ -226,7 +226,7 @@ def datetime_round(
     datetime.datetime(2004, 11, 13, 9, 0)
     """
     result = datetime_mod(dt, period, start)
-    if abs(dt - result) >= period // 2:
+    if abs(dt - result) >= period - abs(dt - result):
         result += period
     return result
 
