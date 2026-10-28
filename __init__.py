@@ -402,6 +402,14 @@ def parse_timedelta(str: str) -> datetime.timedelta:
     >>> parse_timedelta('1 day, 30 seconds')
     datetime.timedelta(days=1, seconds=30)
 
+    Each part can carry a sign; a composite duration's sign applies to all
+    of its components.
+
+    >>> parse_timedelta('1 hour, -30 minutes')
+    datetime.timedelta(seconds=1800)
+    >>> parse_timedelta('-1:30:00')
+    datetime.timedelta(days=-1, seconds=81000)
+
     >>> parse_timedelta('47.32 days, 20 minutes, 15.4 milliseconds')
     datetime.timedelta(days=47, seconds=28848, microseconds=15400)
 
@@ -693,7 +701,7 @@ class Duration:
 
 
 def _parse_timedelta_nanos(str: str) -> _Saved_NS:
-    parts = re.finditer(r'(?P<value>[\d.:]+)\s?(?P<unit>[^\W\d_]+)?', str)
+    parts = re.finditer(r'(?P<value>[+-]?[\d.:]+)\s?(?P<unit>[^\W\d_]+)?', str)
     chk_parts = _check_unmatched(parts, str)
     deltas = map(_parse_timedelta_part, chk_parts)
     return sum(deltas, _Saved_NS())
@@ -780,9 +788,10 @@ def _resolve_unit(raw_match: str | None) -> str:
 def _parse_timedelta_composite(raw_value: str, unit: str) -> _Saved_NS:
     if unit != 'seconds':
         raise ValueError("Cannot specify units with composite delta")
-    values = raw_value.split(':')
+    sign = '-' if raw_value.startswith('-') else ''
+    values = raw_value.lstrip('+-').split(':')
     units = 'hours', 'minutes', 'seconds'
-    composed = ' '.join(f'{value} {unit}' for value, unit in zip(values, units))
+    composed = ' '.join(f'{sign}{value} {unit}' for value, unit in zip(values, units))
     return _parse_timedelta_nanos(composed)
 
 
