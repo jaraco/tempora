@@ -97,6 +97,7 @@ class DelayedCommand(datetime.datetime):
             other.second,
             other.microsecond,
             other.tzinfo,
+            fold=other.fold,
         )
 
     @classmethod
