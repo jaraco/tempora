@@ -2,6 +2,7 @@ import datetime
 import random
 import time
 import zoneinfo
+from collections.abc import Callable
 from unittest import mock
 
 import freezegun
@@ -157,3 +158,101 @@ class TestScheduler:
         with freezegun.freeze_time(before + datetime.timedelta(seconds=25)):
             sched.run_pending()
         assert target.call_count == 2
+
+
+@pytest.fixture(params=['from_datetime', 'at_time', 'fixed_delay_at_time'])
+def command_constructor(
+    request: pytest.FixtureRequest,
+) -> tuple[
+    Callable[[datetime.datetime], schedule.DelayedCommand],
+    type[schedule.DelayedCommand],
+]:
+    if request.param == 'from_datetime':
+        return schedule.DelayedCommand.from_datetime, schedule.DelayedCommand
+    if request.param == 'at_time':
+        return (
+            lambda value: schedule.DelayedCommand.at_time(value, None),
+            schedule.DelayedCommand,
+        )
+    return (
+        lambda value: schedule.PeriodicCommandFixedDelay.at_time(
+            value, datetime.timedelta(hours=1), None
+        ),
+        schedule.PeriodicCommandFixedDelay,
+    )
+
+
+@pytest.mark.parametrize('fold', [0, 1, None], ids=['first', 'second', 'utc'])
+def test_command_preserves_datetime(
+    command_constructor: tuple[
+        Callable[[datetime.datetime], schedule.DelayedCommand],
+        type[schedule.DelayedCommand],
+    ],
+    fold: int | None,
+) -> None:
+    constructor, command_type = command_constructor
+    zone = zoneinfo.ZoneInfo('America/New_York') if fold is not None else datetime.UTC
+    value = datetime.datetime(
+        2024, 11, 3, 1, 30, 15, 123456, tzinfo=zone, fold=fold or 0
+    )
+
+    command = constructor(value)
+
+    assert type(command) is command_type
+    assert command.fold == value.fold
+    assert command.tzinfo is zone
+    assert command.microsecond == value.microsecond
+    assert command.utcoffset() == value.utcoffset()
+    assert command.timestamp() == value.timestamp()
+    assert (
+        command.astimezone(datetime.UTC).isoformat()
+        == value.astimezone(datetime.UTC).isoformat()
+    )
+
+
+def test_command_from_numeric_timestamp() -> None:
+    value = datetime.datetime(
+        2024,
+        11,
+        3,
+        1,
+        30,
+        15,
+        123456,
+        tzinfo=zoneinfo.ZoneInfo('America/New_York'),
+        fold=1,
+    )
+
+    command = schedule.DelayedCommand.at_time(value.timestamp(), None)
+
+    assert command.timestamp() == value.timestamp()
+    assert command.tzinfo is datetime.UTC
+    assert command.microsecond == value.microsecond
+
+
+@pytest.mark.parametrize('fold,expected_due', [(0, True), (1, False)])
+def test_command_due_in_ambiguous_hour(
+    command_constructor: tuple[
+        Callable[[datetime.datetime], schedule.DelayedCommand],
+        type[schedule.DelayedCommand],
+    ],
+    fold: int,
+    expected_due: bool,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime.datetime(2024, 11, 3, 5, 45, tzinfo=datetime.UTC)
+    monkeypatch.setattr(schedule, 'now', lambda: now)
+    value = datetime.datetime(
+        2024,
+        11,
+        3,
+        1,
+        30,
+        tzinfo=zoneinfo.ZoneInfo('America/New_York'),
+        fold=fold,
+    )
+    constructor, _ = command_constructor
+
+    command = constructor(value)
+
+    assert command.due() is expected_due
