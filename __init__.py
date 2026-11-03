@@ -931,7 +931,10 @@ def parse(*args: Any, **kwargs: Any) -> datetime.datetime:
     """
     Parse the input using dateutil.parser.parse with friendly tz support.
 
+    A caller-supplied ``tzinfos`` mapping or callable overrides the defaults.
+
     >>> parse('2024-07-26 12:59:00 EDT')
     datetime.datetime(...America/New_York...)
     """
-    return dateutil.parser.parse(*args, tzinfos=tzinfos, **kwargs)  # type: ignore[no-any-return]
+    kwargs.setdefault('tzinfos', tzinfos)
+    return dateutil.parser.parse(*args, **kwargs)  # type: ignore[no-any-return]
