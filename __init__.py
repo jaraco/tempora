@@ -189,7 +189,7 @@ def datetime_mod(
     """
     if start is None:
         # use midnight of the same day
-        start = datetime.datetime.combine(dt.date(), datetime.time())
+        start = datetime.datetime.combine(dt.date(), datetime.time(), dt.tzinfo)
     # calculate the difference between the specified time and the start date.
     delta = dt - start
 
