@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__license__ = 'Apache-2.0'
+
 __requires__ = [
     'pytest-freezer; extra=="test"',
     'backports.zoneinfo; python_version < "3.9" and extra == "test"',
